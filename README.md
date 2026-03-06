@@ -6,8 +6,10 @@ A proof-of-concept multi-agent system that processes insurance claims through a 
 
 ```mermaid
 graph LR
-    subgraph "Local Environment (Docker Compose)"
-        P[Claims Producer<br/>Python Container] -- "1. Send JSON" --> K((Kafka Broker<br/>+ Zookeeper))
+    P[producer/main.py<br/>Local Script] -- "1. Send JSON" --> K
+
+    subgraph "Docker Compose"
+        K((Kafka Broker<br/>+ Zookeeper))
 
         subgraph "AI Agent System Container"
             C[Kafka Consumer] -- "2. Poll" --> K
@@ -18,15 +20,18 @@ graph LR
             R -- "Tool Use" --> T1[check_policy_rules<br/>policy_db.json]
             R -- "Tool Use" --> T2[get_claim_history<br/>claims_history.json]
         end
+
+        KUI[Kafka UI<br/>:8080]
     end
 
-    subgraph "GCP"
-        E -- "API Call" --> G[Gemini API<br/>gemini-2.5-flash]
+    subgraph "Gemini API"
+        E -- "API Call" --> G[gemini-2.5-flash]
         R -- "API Call" --> G
         D -- "API Call" --> G
     end
 
     O -- "4. Write Result" --> KR[Kafka: claim-results]
+    O -- "5. Save" --> RF[results/predictions.json]
 ```
 
 ## Agent Pipeline
@@ -52,19 +57,17 @@ Diagnosis Text --> [Extraction Agent] --> [Policy Reviewer] --> [Final Decider] 
 ```
 poc-kafka-with-ai-agent/
 ├── docker-compose.yml
+├── requirements.txt            # Top-level venv (local dev)
 ├── .env                        # GOOGLE_API_KEY (gitignored)
 ├── .env.example
 │
 ├── producer/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── main.py                 # Publishes 50 claims to Kafka topic
+│   ├── main.py                 # CLI script: send claims to Kafka
 │   └── data/
 │       └── sample_claims.json  # 50 simulated insurance claims
 │
 ├── agent_system/
 │   ├── Dockerfile
-│   ├── requirements.txt
 │   ├── main.py                 # Kafka consumer + result persistence
 │   ├── orchestrator.py         # Sequential 3-agent pipeline
 │   ├── token_tracker.py        # Token usage tracking via after_model_callback
@@ -80,9 +83,15 @@ poc-kafka-with-ai-agent/
 │       ├── policy_db.json      # 9 simulated insurance policies
 │       └── claims_history.json # Historical claims per policy
 │
-└── results/                    # Output directory (Docker volume mount)
+├── evaluation/
+│   ├── evaluator.py            # GeminiJudge + DeepEval metrics
+│   ├── run_evaluation.py       # Main evaluation runner
+│   └── README.md               # How to run evaluation
+│
+└── results/                    # Output (Docker volume mount)
     ├── predictions.json
-    └── token_usage.json
+    ├── token_usage.json
+    └── evaluation_report.json
 ```
 
 ## Quick Start
@@ -99,35 +108,49 @@ cp .env.example .env
 # Edit .env and set your GOOGLE_API_KEY
 ```
 
-### 2. Start all services
+### 2. Install local dependencies
 
 ```bash
-docker compose up --build -d
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### 3. Monitor processing
+### 3. Start infrastructure + agent system
 
 ```bash
-docker compose logs -f agent-system
+docker compose up -d
 ```
 
-### 4. Visual monitoring (Kafka UI)
+This starts: Kafka + Zookeeper, Kafka UI (`:8080`), and the Agent System (keep-running consumer).
 
-Once services are up, open **http://localhost:8080** in your browser.
-
-| Page | URL | What you can see |
-|------|-----|------------------|
-| Topics overview | http://localhost:8080/ui/clusters/local/topics | Message count per topic |
-| Incoming claims | http://localhost:8080/ui/clusters/local/topics/insurance-claims/messages | Raw claim JSON as they arrive |
-| Agent decisions | http://localhost:8080/ui/clusters/local/topics/claim-results/messages | AI verdicts written by agent system |
-| Consumer lag | http://localhost:8080/ui/clusters/local/consumer-groups/agent-system-group | How far behind the consumer is |
-
-### 5. View results
+### 4. Send claims
 
 ```bash
+# Send all 50 claims (3s interval)
+python producer/main.py
+
+# Or control count and speed
+python producer/main.py --count 5 --interval 1
+```
+
+### 5. Monitor
+
+```bash
+# Agent system logs
+docker logs -f agent-system
+
+# Results file (updated after each claim)
 cat results/predictions.json
-cat results/token_usage.json
 ```
+
+**Kafka UI**: http://localhost:8080
+
+| Page | What you can see |
+|------|-----------------|
+| `insurance-claims` topic | Raw claim JSON as they arrive |
+| `claim-results` topic | AI verdicts |
+| Consumer groups | `agent-system-group` lag |
 
 ### 6. Shut down
 
@@ -138,18 +161,16 @@ docker compose down
 ## Local Test (without Docker)
 
 ```bash
-cd agent_system
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+source .venv/bin/activate
 export GOOGLE_API_KEY="your-api-key"
-python test_local.py
+python agent_system/test_local.py
 ```
 
 ## Re-run
 
-To reprocess all claims, fully reset Kafka state:
+To reprocess all claims from scratch, reset Kafka offsets by restarting:
 
 ```bash
-docker compose down
-docker compose up --build -d
+docker compose down && docker compose up -d
+python producer/main.py
 ```
