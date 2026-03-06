@@ -14,12 +14,12 @@ from token_tracker import tracker
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [AgentSystem] %(message)s",
+    format="%(asctime)s [AIAgentService] %(message)s",
 )
 log = logging.getLogger(__name__)
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
-INPUT_TOPIC = os.getenv("INPUT_TOPIC", "insurance-claims")
+INPUT_TOPIC = os.getenv("INPUT_TOPIC", "claims-pending")
 OUTPUT_TOPIC = os.getenv("OUTPUT_TOPIC", "claim-results")
 RESULTS_DIR = os.getenv("RESULTS_DIR", "/app/results")
 RESULTS_FILE = os.path.join(RESULTS_DIR, "predictions.json")
@@ -34,9 +34,8 @@ def create_consumer(retries: int = 10, delay: int = 5) -> KafkaConsumer:
                 bootstrap_servers=KAFKA_BROKER,
                 value_deserializer=lambda m: json.loads(m.decode("utf-8")),
                 auto_offset_reset="earliest",
-                group_id="agent-system-group",
+                group_id="ai-agent-service-group",
                 consumer_timeout_ms=-1,
-                max_poll_interval_ms=1800000,  # 30 min -> For slow LLM processing
             )
             log.info("Connected to Kafka at %s, subscribed to [%s]", KAFKA_BROKER, INPUT_TOPIC)
             return consumer
@@ -84,9 +83,6 @@ async def run():
     consumer = create_consumer()
     producer = create_producer()
 
-    log.info("Waiting for claims on [%s]...", INPUT_TOPIC)
-    log.info("Decisions will be published to [%s]", OUTPUT_TOPIC)
-
     results: list[dict] = []
     claim_count = 0
     processed_ids: set[str] = set()
@@ -103,7 +99,7 @@ async def run():
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)
 
-    log.info("Agent system is running. Send claims to [%s] to trigger processing.", INPUT_TOPIC)
+    log.info("Waiting for claims on [%s]...", INPUT_TOPIC)
 
     for message in consumer:
         claim = message.value

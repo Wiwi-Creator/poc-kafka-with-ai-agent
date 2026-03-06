@@ -48,6 +48,7 @@ services:
       - |
         echo "Creating Kafka topics..."
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic insurance-claims
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic claims-pending
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic claim-results
         echo "Topics created:"
         kafka-topics --list --bootstrap-server kafka:29092
@@ -66,16 +67,28 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
-  agent-system:
-    build: ./agent_system
-    container_name: agent-system
+  consumer-service:
+    build: ./consumer_service
+    container_name: consumer-service
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKER: kafka:29092
+      INPUT_TOPIC: insurance-claims
+      PENDING_TOPIC: claims-pending
+    restart: on-failure
+
+  ai-agent-service:
+    build: ./ai_agent_service
+    container_name: ai-agent-service
     depends_on:
       kafka-init:
         condition: service_completed_successfully
     env_file: .env
     environment:
       KAFKA_BROKER: kafka:29092
-      INPUT_TOPIC: insurance-claims
+      INPUT_TOPIC: claims-pending
       OUTPUT_TOPIC: claim-results
       RESULTS_DIR: /app/results
     volumes:
