@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import signal
 import time
 from datetime import datetime, timezone
 
@@ -34,7 +35,7 @@ def create_consumer(retries: int = 10, delay: int = 5) -> KafkaConsumer:
                 value_deserializer=lambda m: json.loads(m.decode("utf-8")),
                 auto_offset_reset="earliest",
                 group_id="agent-system-group",
-                consumer_timeout_ms=120000,
+                consumer_timeout_ms=-1,
             )
             log.info("Connected to Kafka at %s, subscribed to [%s]", KAFKA_BROKER, INPUT_TOPIC)
             return consumer
@@ -89,6 +90,20 @@ async def run():
     claim_count = 0
     processed_ids: set[str] = set()
 
+    def shutdown(sig, frame):
+        log.info("Shutdown signal received (sig=%d), stopping...", sig)
+        _print_summary(results)
+        tracker.print_summary()
+        tracker.save_report()
+        consumer.close()
+        producer.close()
+        raise SystemExit(0)
+
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
+
+    log.info("Agent system is running. Send claims to [%s] to trigger processing.", INPUT_TOPIC)
+
     for message in consumer:
         claim = message.value
         claim_count += 1
@@ -129,24 +144,19 @@ async def run():
 
         processed_ids.add(claim_id)
 
-        # Publish decision to output topic
         producer.send(OUTPUT_TOPIC, value=results[-1])
         producer.flush()
         log.info("[%s] Published decision to [%s]", claim_id, OUTPUT_TOPIC)
 
-        # Save after each claim (incremental, so we don't lose progress)
         save_results(results)
 
-    # ── Final summary ────────────────────────────────────────────────────
-    log.info(" Processing complete: %d claims", len(results))
+
+def _print_summary(results: list[dict]) -> None:
+    log.info(" Session summary: %d claims processed", len(results))
     log.info("   APPROVED:      %d", sum(1 for r in results if r.get("verdict") == "APPROVED"))
     log.info("   DENIED:        %d", sum(1 for r in results if r.get("verdict") == "DENIED"))
     log.info("   MANUAL_REVIEW: %d", sum(1 for r in results if r.get("verdict") == "MANUAL_REVIEW"))
     log.info(" Results saved to: %s", RESULTS_FILE)
-
-    # ── Token usage report ────────────────────────────────────────────
-    tracker.print_summary()
-    tracker.save_report()
 
 
 def main():

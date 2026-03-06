@@ -53,17 +53,6 @@ services:
         kafka-topics --list --bootstrap-server kafka:29092
         echo "Kafka init complete."
 
-  producer:
-    build: ./producer
-    container_name: claims-producer
-    depends_on:
-      kafka-init:
-        condition: service_completed_successfully
-    environment:
-      KAFKA_BROKER: kafka:29092
-      TOPIC_NAME: insurance-claims
-    restart: on-failure
-
   # -- Kafka UI: web dashboard for topics, messages, consumer groups --
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

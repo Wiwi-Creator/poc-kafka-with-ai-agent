@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os
@@ -14,10 +15,10 @@ log = logging.getLogger(__name__)
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 TOPIC_NAME = os.getenv("TOPIC_NAME", "insurance-claims")
+DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "sample_claims.json")
 
 
 def create_producer(retries: int = 10, delay: int = 5) -> KafkaProducer:
-    """Create KafkaProducer with retry logic for broker readiness."""
     for attempt in range(1, retries + 1):
         try:
             producer = KafkaProducer(
@@ -37,12 +38,7 @@ def create_producer(retries: int = 10, delay: int = 5) -> KafkaProducer:
     raise RuntimeError(f"Failed to connect to Kafka after {retries} attempts")
 
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), "data", "sample_claims.json")
-PUBLISH_INTERVAL = int(os.getenv("PUBLISH_INTERVAL", "3"))
-
-
 def load_claims(path: str) -> list[dict]:
-    """Load claim records from JSON file."""
     with open(path, "r", encoding="utf-8") as f:
         claims = json.load(f)
     log.info("Loaded %d claims from %s", len(claims), path)
@@ -50,24 +46,41 @@ def load_claims(path: str) -> list[dict]:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Send insurance claims to Kafka")
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=None,
+        help="Number of claims to send (default: all)",
+    )
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=float(os.getenv("PUBLISH_INTERVAL", "3")),
+        help="Seconds between each claim (default: 3)",
+    )
+    args = parser.parse_args()
+
     producer = create_producer()
-    claims = load_claims(DATA_FILE)
+    all_claims = load_claims(DATA_FILE)
+    claims = all_claims[: args.count] if args.count else all_claims
+
+    log.info("Sending %d claim(s) with %.1fs interval to [%s]", len(claims), args.interval, TOPIC_NAME)
 
     for i, claim in enumerate(claims, 1):
         producer.send(TOPIC_NAME, value=claim)
         producer.flush()
         log.info(
-            "[%d/%d] Published %s (amount: %s) to [%s]",
+            "[%d/%d] Published %s (amount: %s)",
             i,
             len(claims),
             claim["claim_id"],
             claim["claim_amount"],
-            TOPIC_NAME,
         )
         if i < len(claims):
-            time.sleep(PUBLISH_INTERVAL)
+            time.sleep(args.interval)
 
-    log.info("All %d claims published. Producer exiting.", len(claims))
+    log.info("Done. %d claim(s) sent.", len(claims))
 
 
 if __name__ == "__main__":

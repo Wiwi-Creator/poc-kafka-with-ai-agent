@@ -1,0 +1,9 @@
+# Kafka
+kafka-python-ng==2.2.3
+
+# Agent system
+google-adk>=1.26.0
+
+# Evaluation
+deepeval>=0.21.0
+google-genai>=1.16.0
