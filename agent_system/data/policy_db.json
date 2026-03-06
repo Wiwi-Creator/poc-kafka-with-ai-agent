@@ -1,0 +1,110 @@
+{
+  "POL-A100": {
+    "holder": "Wang Xiao-Ming",
+    "plan": "Basic Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 30000,
+    "annual_limit": 200000,
+    "annual_used": 0,
+    "exclusions": ["cosmetic surgery", "preventive checkup"],
+    "status": "active",
+    "effective_date": "2024-01-01",
+    "expiry_date": "2026-12-31"
+  },
+  "POL-B200": {
+    "holder": "Lin Mei-Ling",
+    "plan": "Standard Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 50000,
+    "annual_limit": 300000,
+    "annual_used": 10000,
+    "exclusions": ["cosmetic surgery", "preventive checkup", "dental"],
+    "status": "active",
+    "effective_date": "2024-06-01",
+    "expiry_date": "2026-05-31"
+  },
+  "POL-C300": {
+    "holder": "Chen Da-Wei",
+    "plan": "Basic Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 40000,
+    "annual_limit": 200000,
+    "annual_used": 0,
+    "exclusions": ["cosmetic surgery", "preventive checkup"],
+    "status": "active",
+    "effective_date": "2024-03-01",
+    "expiry_date": "2026-02-28"
+  },
+  "POL-D400": {
+    "holder": "Zhang Li-Hua",
+    "plan": "Basic Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 60000,
+    "annual_limit": 250000,
+    "annual_used": 30000,
+    "exclusions": ["cosmetic surgery", "preventive checkup"],
+    "status": "expired",
+    "effective_date": "2023-01-01",
+    "expiry_date": "2024-12-31"
+  },
+  "POL-E500": {
+    "holder": "Huang Yu-Ting",
+    "plan": "Premium Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 500000,
+    "annual_limit": 1000000,
+    "annual_used": 50000,
+    "exclusions": ["cosmetic surgery"],
+    "status": "active",
+    "effective_date": "2024-01-01",
+    "expiry_date": "2026-12-31"
+  },
+  "POL-F600": {
+    "holder": "Wu Jia-Hui",
+    "plan": "Standard Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 50000,
+    "annual_limit": 300000,
+    "annual_used": 0,
+    "exclusions": ["cosmetic surgery", "preventive checkup", "dental"],
+    "status": "active",
+    "effective_date": "2024-07-01",
+    "expiry_date": "2026-06-30"
+  },
+  "POL-G700": {
+    "holder": "Liu Zhi-Qiang",
+    "plan": "Standard Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 50000,
+    "annual_limit": 300000,
+    "annual_used": 80000,
+    "exclusions": ["cosmetic surgery", "preventive checkup"],
+    "status": "active",
+    "effective_date": "2024-04-01",
+    "expiry_date": "2026-03-31"
+  },
+  "POL-H800": {
+    "holder": "Xu Shu-Fen",
+    "plan": "Standard Medical",
+    "surgery_coverage": true,
+    "max_per_claim": 50000,
+    "annual_limit": 300000,
+    "annual_used": 150000,
+    "exclusions": ["cosmetic surgery", "preventive checkup"],
+    "status": "active",
+    "effective_date": "2024-02-01",
+    "expiry_date": "2026-01-31"
+  },
+  "POL-I900": {
+    "holder": "Yang Jing-Wen",
+    "plan": "Basic Medical",
+    "surgery_coverage": false,
+    "max_per_claim": 20000,
+    "annual_limit": 150000,
+    "annual_used": 0,
+    "exclusions": ["cosmetic surgery", "preventive checkup", "elective surgery"],
+    "status": "active",
+    "effective_date": "2024-09-01",
+    "expiry_date": "2026-08-31"
+  }
+}

@@ -1,0 +1,94 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # -- init container: create topics then exit --
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Creating Kafka topics..."
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic insurance-claims
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic claim-results
+        echo "Topics created:"
+        kafka-topics --list --bootstrap-server kafka:29092
+        echo "Kafka init complete."
+
+  producer:
+    build: ./producer
+    container_name: claims-producer
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKER: kafka:29092
+      TOPIC_NAME: insurance-claims
+    restart: on-failure
+
+  # -- Kafka UI: web dashboard for topics, messages, consumer groups --
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+  agent-system:
+    build: ./agent_system
+    container_name: agent-system
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    env_file: .env
+    environment:
+      KAFKA_BROKER: kafka:29092
+      INPUT_TOPIC: insurance-claims
+      OUTPUT_TOPIC: claim-results
+      RESULTS_DIR: /app/results
+    volumes:
+      - ./results:/app/results
+    restart: on-failure

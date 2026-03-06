@@ -1,0 +1,80 @@
+{
+  "POL-A100": [],
+  "POL-B200": [
+    {
+      "claim_id": "CLM-H001",
+      "surgery_type": "knee arthroscopy",
+      "claim_amount": 10000,
+      "approved_amount": 10000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-03-10T09:00:00Z"
+    }
+  ],
+  "POL-C300": [],
+  "POL-D400": [
+    {
+      "claim_id": "CLM-H002",
+      "surgery_type": "hernia repair",
+      "claim_amount": 30000,
+      "approved_amount": 30000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-02-20T14:00:00Z"
+    }
+  ],
+  "POL-E500": [
+    {
+      "claim_id": "CLM-H003",
+      "surgery_type": "cardiac catheterization",
+      "claim_amount": 50000,
+      "approved_amount": 50000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-01-05T11:30:00Z"
+    }
+  ],
+  "POL-F600": [],
+  "POL-G700": [
+    {
+      "claim_id": "CLM-H004",
+      "surgery_type": "gallbladder removal",
+      "claim_amount": 40000,
+      "approved_amount": 40000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-01-15T10:00:00Z"
+    },
+    {
+      "claim_id": "CLM-H005",
+      "surgery_type": "colonoscopy",
+      "claim_amount": 40000,
+      "approved_amount": 40000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-02-28T16:00:00Z"
+    }
+  ],
+  "POL-H800": [
+    {
+      "claim_id": "CLM-H006",
+      "surgery_type": "spinal fusion",
+      "claim_amount": 100000,
+      "approved_amount": 50000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-01-08T08:00:00Z"
+    },
+    {
+      "claim_id": "CLM-H007",
+      "surgery_type": "hip replacement",
+      "claim_amount": 50000,
+      "approved_amount": 50000,
+      "verdict": "APPROVED",
+      "submitted_at": "2025-02-14T13:00:00Z"
+    },
+    {
+      "claim_id": "CLM-H008",
+      "surgery_type": "cosmetic surgery",
+      "claim_amount": 20000,
+      "approved_amount": 0,
+      "verdict": "DENIED",
+      "submitted_at": "2025-03-01T09:30:00Z"
+    }
+  ],
+  "POL-I900": []
+}
