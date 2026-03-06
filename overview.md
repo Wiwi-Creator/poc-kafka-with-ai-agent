@@ -21,7 +21,7 @@ Producer                    Kafka Broker                 Consumer
 - **Topic**: `insurance-claims` — single partition, single consumer group
 - **Serialization**: JSON (UTF-8)
 - **Offset reset**: `earliest` — consumer reads from the beginning
-- **Consumer timeout**: 120 seconds — exits after no new messages
+- **Consumer timeout**: none (`-1`) — keeps running until manually stopped
 
 ### 1.2 AI Agent Workflow
 
@@ -172,7 +172,7 @@ class Decision(BaseModel):
 
 ### Historical Claims (`agent_system/data/claims_history.json`)
 
-Pre-seeded past claims per policy, used by Agent 2 to detect duplicates and assess claim frequency:
+Pre-seeded past claims per policy, used by Agent 2 to calculate annual budget consumed:
 
 | Policy | Past Claims | Notable |
 |--------|-------------|---------|
@@ -184,7 +184,7 @@ Pre-seeded past claims per policy, used by Agent 2 to detect duplicates and asse
 
 ---
 
-## 5. Key Design Decisions
+## 6. Key Design Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|

@@ -122,7 +122,7 @@ pip install -r requirements.txt
 docker compose up -d
 ```
 
-This starts: Kafka + Zookeeper, Kafka UI (`:8080`), and the Agent System (keep-running consumer).
+This starts Kafka + Zookeeper, Kafka UI (`:8080`), and the Agent System.
 
 ### 4. Send claims
 
@@ -149,7 +149,7 @@ cat results/predictions.json
 | Page | What you can see |
 |------|-----------------|
 | `insurance-claims` topic | Raw claim JSON as they arrive |
-| `claim-results` topic | AI verdicts |
+| `claim-results` topic | Agent decisions |
 | Consumer groups | `agent-system-group` lag |
 
 ### 6. Shut down
@@ -162,7 +162,7 @@ docker compose down
 
 ```bash
 source .venv/bin/activate
-export GOOGLE_API_KEY="your-api-key"
+set -a && source .env && set +a
 python agent_system/test_local.py
 ```
 
