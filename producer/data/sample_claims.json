@@ -1,0 +1,402 @@
+[
+  {
+    "claim_id": "CLM-001",
+    "policy_id": "POL-A100",
+    "patient_name": "Wang Xiao-Ming",
+    "diagnosis_text": "Patient admitted for acute appendicitis with peritoneal irritation signs. Underwent laparoscopic appendectomy under general anesthesia. Hospitalized for 3 days with uneventful recovery. Discharged with oral antibiotics.",
+    "claim_amount": 50000,
+    "submitted_at": "2025-01-15T10:30:00Z"
+  },
+  {
+    "claim_id": "CLM-002",
+    "policy_id": "POL-B200",
+    "patient_name": "Lin Mei-Ling",
+    "diagnosis_text": "Patient diagnosed with acute cholecystitis confirmed by ultrasound showing gallstones. Performed laparoscopic cholecystectomy. Hospitalized for 2 days. Recovery uneventful, discharged in stable condition.",
+    "claim_amount": 25000,
+    "submitted_at": "2025-01-18T14:20:00Z"
+  },
+  {
+    "claim_id": "CLM-003",
+    "policy_id": "POL-C300",
+    "patient_name": "Chen Da-Wei",
+    "diagnosis_text": "Patient requested rhinoplasty for cosmetic improvement of nasal bridge. Procedure performed under local anesthesia as outpatient. No complications. Follow-up scheduled in 2 weeks.",
+    "claim_amount": 80000,
+    "submitted_at": "2025-02-01T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-004",
+    "policy_id": "POL-D400",
+    "patient_name": "Zhang Li-Hua",
+    "diagnosis_text": "Patient presented with right knee anterior cruciate ligament (ACL) tear from sports injury. Underwent arthroscopic ACL reconstruction using hamstring autograft. Hospitalized for 2 days. Physical therapy rehabilitation plan initiated.",
+    "claim_amount": 120000,
+    "submitted_at": "2025-02-10T11:45:00Z"
+  },
+  {
+    "claim_id": "CLM-005",
+    "policy_id": "POL-E500",
+    "patient_name": "Huang Yu-Ting",
+    "diagnosis_text": "Patient admitted via emergency department with acute myocardial infarction (STEMI). Emergency percutaneous coronary intervention (PCI) with stent placement performed. ICU stay for 3 days followed by 4 days in general ward. Total hospitalization 7 days.",
+    "claim_amount": 350000,
+    "submitted_at": "2025-02-14T03:15:00Z"
+  },
+  {
+    "claim_id": "CLM-006",
+    "policy_id": "POL-F600",
+    "patient_name": "Wu Jia-Hui",
+    "diagnosis_text": "Patient visited for annual comprehensive health screening including blood tests, chest X-ray, abdominal ultrasound, and cardiac stress test. All results within normal limits. No abnormalities detected.",
+    "claim_amount": 15000,
+    "submitted_at": "2025-02-20T08:30:00Z"
+  },
+  {
+    "claim_id": "CLM-007",
+    "policy_id": "POL-G700",
+    "patient_name": "Liu Zhi-Qiang",
+    "diagnosis_text": "Patient diagnosed with lumbar disc herniation at L4-L5 causing severe radiculopathy. Conservative treatment failed after 3 months. Underwent microdiscectomy. Hospitalized for 2 days. Significant pain relief post-surgery.",
+    "claim_amount": 45000,
+    "submitted_at": "2025-03-01T13:00:00Z"
+  },
+  {
+    "claim_id": "CLM-008",
+    "policy_id": "POL-H800",
+    "patient_name": "Xu Shu-Fen",
+    "diagnosis_text": "Patient presented with displaced fracture of right distal radius from fall. Underwent open reduction and internal fixation (ORIF) with plate and screws. Hospitalized for 1 day. Cast applied, follow-up in 6 weeks.",
+    "claim_amount": 35000,
+    "submitted_at": "2025-03-05T16:40:00Z"
+  },
+  {
+    "claim_id": "CLM-009",
+    "policy_id": "POL-I900",
+    "patient_name": "Yang Jing-Wen",
+    "diagnosis_text": "Patient diagnosed with bilateral cataracts causing significant vision impairment. Underwent phacoemulsification with intraocular lens implantation on left eye. Outpatient procedure. Vision improved to 20/25 post-operatively.",
+    "claim_amount": 28000,
+    "submitted_at": "2025-03-10T10:00:00Z"
+  },
+  {
+    "claim_id": "CLM-010",
+    "policy_id": "POL-A100",
+    "patient_name": "Wang Xiao-Ming",
+    "diagnosis_text": "Patient returned with post-appendectomy incisional hernia at previous surgical site. Underwent laparoscopic hernia repair with mesh placement. Hospitalized for 2 days. Recovery satisfactory.",
+    "claim_amount": 40000,
+    "submitted_at": "2025-03-15T09:30:00Z"
+  },
+  {
+    "claim_id": "CLM-011",
+    "policy_id": "POL-B200",
+    "patient_name": "Lin Mei-Ling",
+    "diagnosis_text": "Patient presented with severe osteoarthritis of the right knee unresponsive to conservative management. Underwent total knee replacement under spinal anesthesia. Hospitalized for 3 days. Physical therapy initiated on day 1 post-surgery.",
+    "claim_amount": 48000,
+    "submitted_at": "2025-03-18T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-012",
+    "policy_id": "POL-C300",
+    "patient_name": "Chen Da-Wei",
+    "diagnosis_text": "Patient presented with multiple missing teeth requiring dental implant placement. Underwent surgical placement of 3 dental implants under local anesthesia. Outpatient procedure. Post-operative antibiotics prescribed.",
+    "claim_amount": 25000,
+    "submitted_at": "2025-03-20T10:30:00Z"
+  },
+  {
+    "claim_id": "CLM-013",
+    "policy_id": "POL-E500",
+    "patient_name": "Huang Yu-Ting",
+    "diagnosis_text": "Patient diagnosed with end-stage liver cirrhosis secondary to hepatitis B. Underwent orthotopic liver transplantation. ICU stay for 5 days post-transplant followed by 10 days in hepatology ward. Immunosuppression therapy initiated.",
+    "claim_amount": 450000,
+    "submitted_at": "2025-03-22T06:00:00Z"
+  },
+  {
+    "claim_id": "CLM-014",
+    "policy_id": "POL-F600",
+    "patient_name": "Wu Jia-Hui",
+    "diagnosis_text": "Patient admitted with acute appendicitis confirmed by CT scan. Underwent emergency laparoscopic appendectomy. Hospitalized for 2 days. Wound healing well at discharge. Oral antibiotics for 5 days post-discharge.",
+    "claim_amount": 35000,
+    "submitted_at": "2025-03-25T14:00:00Z"
+  },
+  {
+    "claim_id": "CLM-015",
+    "policy_id": "POL-G700",
+    "patient_name": "Liu Zhi-Qiang",
+    "diagnosis_text": "Patient with degenerative disc disease at multiple levels requiring spinal fusion surgery. Underwent posterior lumbar interbody fusion at L3-L4 and L4-L5. Hospitalized for 5 days. Significant improvement in mobility post-surgery.",
+    "claim_amount": 55000,
+    "submitted_at": "2025-03-28T11:00:00Z"
+  },
+  {
+    "claim_id": "CLM-016",
+    "policy_id": "POL-H800",
+    "patient_name": "Xu Shu-Fen",
+    "diagnosis_text": "Patient with advanced cataracts in right eye causing near-total vision loss. Underwent phacoemulsification with premium intraocular lens implantation. Outpatient procedure completed without complications. Follow-up in 1 week.",
+    "claim_amount": 30000,
+    "submitted_at": "2025-04-01T09:30:00Z"
+  },
+  {
+    "claim_id": "CLM-017",
+    "policy_id": "POL-A100",
+    "patient_name": "Wang Xiao-Ming",
+    "diagnosis_text": "Patient requested comprehensive annual health checkup including full blood panel, ECG, abdominal ultrasound, cancer screening markers, and body composition analysis. All results within normal parameters. No pathological findings.",
+    "claim_amount": 8000,
+    "submitted_at": "2025-04-03T08:00:00Z"
+  },
+  {
+    "claim_id": "CLM-018",
+    "policy_id": "POL-D400",
+    "patient_name": "Zhang Li-Hua",
+    "diagnosis_text": "Patient with chronic knee pain and meniscal tear confirmed by MRI. Underwent arthroscopic knee surgery with partial meniscectomy and chondroplasty. Hospitalized for 1 day. Weight-bearing restricted for 2 weeks post-operatively.",
+    "claim_amount": 35000,
+    "submitted_at": "2025-04-05T10:00:00Z"
+  },
+  {
+    "claim_id": "CLM-019",
+    "policy_id": "POL-I900",
+    "patient_name": "Yang Jing-Wen",
+    "diagnosis_text": "Patient with recurrent tonsillitis and sleep apnea underwent tonsillectomy and adenoidectomy. Outpatient procedure under general anesthesia. Recovery unremarkable. Soft diet recommended for 2 weeks.",
+    "claim_amount": 18000,
+    "submitted_at": "2025-04-08T13:00:00Z"
+  },
+  {
+    "claim_id": "CLM-020",
+    "policy_id": "POL-B200",
+    "patient_name": "Lin Mei-Ling",
+    "diagnosis_text": "Patient with rotator cuff tear of the right shoulder causing significant functional limitation. Underwent arthroscopic rotator cuff repair with anchor fixation. Hospitalized for 1 day. Sling immobilization for 6 weeks.",
+    "claim_amount": 42000,
+    "submitted_at": "2025-04-10T15:00:00Z"
+  },
+  {
+    "claim_id": "CLM-021",
+    "policy_id": "POL-C300",
+    "patient_name": "Chen Da-Wei",
+    "diagnosis_text": "Patient diagnosed with papillary thyroid carcinoma on fine needle aspiration biopsy. Underwent total thyroidectomy with central neck dissection. Hospitalized for 2 days. Thyroid hormone replacement initiated. Follow-up radioiodine therapy planned.",
+    "claim_amount": 38000,
+    "submitted_at": "2025-04-12T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-022",
+    "policy_id": "POL-E500",
+    "patient_name": "Huang Yu-Ting",
+    "diagnosis_text": "Patient with glioblastoma multiforme grade IV confirmed by MRI and biopsy. Underwent craniotomy with maximal safe resection of brain tumor. ICU monitoring for 3 days post-surgery followed by 7 days neuro ward. Adjuvant chemoradiation planned.",
+    "claim_amount": 380000,
+    "submitted_at": "2025-04-15T07:30:00Z"
+  },
+  {
+    "claim_id": "CLM-023",
+    "policy_id": "POL-F600",
+    "patient_name": "Wu Jia-Hui",
+    "diagnosis_text": "Patient required extraction of impacted wisdom teeth (all four quadrants). Underwent surgical extraction under intravenous sedation. Outpatient procedure. Post-operative swelling and discomfort managed with analgesics and antibiotics.",
+    "claim_amount": 12000,
+    "submitted_at": "2025-04-17T11:00:00Z"
+  },
+  {
+    "claim_id": "CLM-024",
+    "policy_id": "POL-G700",
+    "patient_name": "Liu Zhi-Qiang",
+    "diagnosis_text": "Patient with symptomatic right inguinal hernia causing intermittent bowel obstruction. Underwent laparoscopic hernia repair with mesh placement. Hospitalized for 1 day. Return to normal activities in 2 weeks.",
+    "claim_amount": 40000,
+    "submitted_at": "2025-04-20T10:00:00Z"
+  },
+  {
+    "claim_id": "CLM-025",
+    "policy_id": "POL-H800",
+    "patient_name": "Xu Shu-Fen",
+    "diagnosis_text": "Patient with end-stage hip osteoarthritis requiring joint replacement. Underwent total hip arthroplasty with cementless fixation. Hospitalized for 4 days. Physiotherapy commenced on day 1 post-operation. Discharged with walking frame.",
+    "claim_amount": 50000,
+    "submitted_at": "2025-04-22T08:30:00Z"
+  },
+  {
+    "claim_id": "CLM-026",
+    "policy_id": "POL-A100",
+    "patient_name": "Wang Xiao-Ming",
+    "diagnosis_text": "Patient with medial meniscus tear and early osteoarthritis of the left knee. Underwent knee arthroscopy with partial medial meniscectomy. Outpatient procedure. Physiotherapy prescribed for quadriceps strengthening.",
+    "claim_amount": 28000,
+    "submitted_at": "2025-04-25T14:00:00Z"
+  },
+  {
+    "claim_id": "CLM-027",
+    "policy_id": "POL-B200",
+    "patient_name": "Lin Mei-Ling",
+    "diagnosis_text": "Patient requested cosmetic rhinoplasty to correct nasal asymmetry and improve tip projection for aesthetic reasons. Underwent open rhinoplasty under general anesthesia. Outpatient procedure. Splint applied for 10 days.",
+    "claim_amount": 35000,
+    "submitted_at": "2025-04-28T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-028",
+    "policy_id": "POL-D400",
+    "patient_name": "Zhang Li-Hua",
+    "diagnosis_text": "Patient presented to emergency with acute abdomen. CT confirmed perforated appendicitis. Underwent emergency open appendectomy with peritoneal lavage. ICU stay for 2 days followed by 4 days general surgery ward. IV antibiotics continued for 7 days.",
+    "claim_amount": 55000,
+    "submitted_at": "2025-05-01T02:00:00Z"
+  },
+  {
+    "claim_id": "CLM-029",
+    "policy_id": "POL-I900",
+    "patient_name": "Yang Jing-Wen",
+    "diagnosis_text": "Patient with chronic lower back pain underwent 10 sessions of physiotherapy and therapeutic ultrasound. No surgical intervention required. Functional improvement noted. Home exercise program established.",
+    "claim_amount": 6000,
+    "submitted_at": "2025-05-03T10:00:00Z"
+  },
+  {
+    "claim_id": "CLM-030",
+    "policy_id": "POL-E500",
+    "patient_name": "Huang Yu-Ting",
+    "diagnosis_text": "Patient with large kidney stone (15mm) in right ureter causing hydronephrosis and recurrent pain. Underwent ureteroscopy with holmium laser lithotripsy and DJ stent insertion. Outpatient procedure. Stent removed after 4 weeks.",
+    "claim_amount": 75000,
+    "submitted_at": "2025-05-06T13:30:00Z"
+  },
+  {
+    "claim_id": "CLM-031",
+    "policy_id": "POL-F600",
+    "patient_name": "Wu Jia-Hui",
+    "diagnosis_text": "Patient with colorectal cancer (T2N0M0) of the sigmoid colon. Underwent laparoscopic sigmoid colectomy with primary anastomosis. Hospitalized for 5 days. Pathology confirmed clear resection margins. Adjuvant chemotherapy not indicated.",
+    "claim_amount": 48000,
+    "submitted_at": "2025-05-09T08:00:00Z"
+  },
+  {
+    "claim_id": "CLM-032",
+    "policy_id": "POL-G700",
+    "patient_name": "Liu Zhi-Qiang",
+    "diagnosis_text": "Patient with symptomatic uterine fibroids causing menorrhagia and pelvic pressure. Underwent laparoscopic myomectomy with removal of multiple fibroids. Hospitalized for 2 days. Follow-up ultrasound in 3 months.",
+    "claim_amount": 44000,
+    "submitted_at": "2025-05-12T11:00:00Z"
+  },
+  {
+    "claim_id": "CLM-033",
+    "policy_id": "POL-H800",
+    "patient_name": "Xu Shu-Fen",
+    "diagnosis_text": "Patient with left breast cancer (stage II) confirmed by core needle biopsy. Underwent modified radical mastectomy with sentinel lymph node biopsy. Hospitalized for 3 days. Oncology referral made for adjuvant chemotherapy planning.",
+    "claim_amount": 45000,
+    "submitted_at": "2025-05-15T09:30:00Z"
+  },
+  {
+    "claim_id": "CLM-034",
+    "policy_id": "POL-A100",
+    "patient_name": "Wang Xiao-Ming",
+    "diagnosis_text": "Patient with symptomatic gallstones and biliary colic. Underwent elective laparoscopic cholecystectomy. Hospitalized for 1 day. Post-operative course uneventful. Low-fat diet advised for 4 weeks.",
+    "claim_amount": 29000,
+    "submitted_at": "2025-05-18T14:00:00Z"
+  },
+  {
+    "claim_id": "CLM-035",
+    "policy_id": "POL-C300",
+    "patient_name": "Chen Da-Wei",
+    "diagnosis_text": "Patient with obstructive hydrocephalus due to aqueductal stenosis. Underwent endoscopic third ventriculostomy. Hospitalized for 3 days. Symptoms resolved post-operatively. MRI follow-up scheduled in 3 months.",
+    "claim_amount": 36000,
+    "submitted_at": "2025-05-20T10:00:00Z"
+  },
+  {
+    "claim_id": "CLM-036",
+    "policy_id": "POL-B200",
+    "patient_name": "Lin Mei-Ling",
+    "diagnosis_text": "Patient with three-vessel coronary artery disease confirmed by angiography. Underwent off-pump coronary artery bypass grafting (CABG) using left internal mammary artery and saphenous vein grafts. ICU for 2 days, ward for 5 days.",
+    "claim_amount": 49000,
+    "submitted_at": "2025-05-23T07:00:00Z"
+  },
+  {
+    "claim_id": "CLM-037",
+    "policy_id": "POL-D400",
+    "patient_name": "Zhang Li-Hua",
+    "diagnosis_text": "Patient with pterygium encroaching onto the cornea causing visual disturbance. Underwent pterygium excision with conjunctival autograft. Outpatient procedure under topical anesthesia. Eye drops prescribed for 4 weeks.",
+    "claim_amount": 22000,
+    "submitted_at": "2025-05-25T10:30:00Z"
+  },
+  {
+    "claim_id": "CLM-038",
+    "policy_id": "POL-I900",
+    "patient_name": "Yang Jing-Wen",
+    "diagnosis_text": "Patient with frozen shoulder underwent 8 sessions of corticosteroid injections and manual physiotherapy. Significant improvement in range of motion achieved. No surgical intervention required. Home exercise program continued.",
+    "claim_amount": 9000,
+    "submitted_at": "2025-05-28T11:00:00Z"
+  },
+  {
+    "claim_id": "CLM-039",
+    "policy_id": "POL-E500",
+    "patient_name": "Huang Yu-Ting",
+    "diagnosis_text": "Patient requested full executive health screening package including PET scan, cardiac CT angiography, full genetic cancer panel, and neurological assessment. No significant pathology detected. Report provided for personal records.",
+    "claim_amount": 55000,
+    "submitted_at": "2025-05-30T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-040",
+    "policy_id": "POL-F600",
+    "patient_name": "Wu Jia-Hui",
+    "diagnosis_text": "Patient with recurrent tonsillitis causing 6 episodes in the past year. Underwent elective tonsillectomy under general anesthesia. Outpatient procedure. Liquid diet for 2 weeks. No intraoperative or post-operative complications.",
+    "claim_amount": 22000,
+    "submitted_at": "2025-06-02T13:00:00Z"
+  },
+  {
+    "claim_id": "CLM-041",
+    "policy_id": "POL-G700",
+    "patient_name": "Liu Zhi-Qiang",
+    "diagnosis_text": "Patient with benign prostatic hyperplasia (BPH) causing urinary retention refractory to medical therapy. Underwent transurethral resection of the prostate (TURP). Hospitalized for 2 days. Catheter removed on day 1 post-op. Good urinary flow at discharge.",
+    "claim_amount": 47000,
+    "submitted_at": "2025-06-05T10:00:00Z"
+  },
+  {
+    "claim_id": "CLM-042",
+    "policy_id": "POL-H800",
+    "patient_name": "Xu Shu-Fen",
+    "diagnosis_text": "Patient with de Quervain tenosynovitis of the right wrist unresponsive to splinting and corticosteroid injections. Underwent surgical release of the first extensor compartment. Outpatient procedure. Splint for 2 weeks.",
+    "claim_amount": 18000,
+    "submitted_at": "2025-06-08T14:30:00Z"
+  },
+  {
+    "claim_id": "CLM-043",
+    "policy_id": "POL-A100",
+    "patient_name": "Wang Xiao-Ming",
+    "diagnosis_text": "Patient with right carpal tunnel syndrome causing numbness and weakness. Underwent endoscopic carpal tunnel release. Outpatient procedure under local anesthesia. Return to light work expected within 2 weeks.",
+    "claim_amount": 12000,
+    "submitted_at": "2025-06-10T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-044",
+    "policy_id": "POL-B200",
+    "patient_name": "Lin Mei-Ling",
+    "diagnosis_text": "Patient with acute calculous cholecystitis, fever and elevated inflammatory markers. Underwent urgent laparoscopic cholecystectomy. Hospitalized for 2 days with IV antibiotics. Bile duct injury absent. Recovery uncomplicated.",
+    "claim_amount": 38000,
+    "submitted_at": "2025-06-13T16:00:00Z"
+  },
+  {
+    "claim_id": "CLM-045",
+    "policy_id": "POL-C300",
+    "patient_name": "Chen Da-Wei",
+    "diagnosis_text": "Patient with perforated gastric ulcer presenting with peritonitis. Underwent emergency laparoscopic Graham patch repair. Hospitalized for 4 days with IV proton pump inhibitor and antibiotics. H. pylori eradication therapy initiated on discharge.",
+    "claim_amount": 32000,
+    "submitted_at": "2025-06-15T04:00:00Z"
+  },
+  {
+    "claim_id": "CLM-046",
+    "policy_id": "POL-E500",
+    "patient_name": "Huang Yu-Ting",
+    "diagnosis_text": "Patient with pancreatic head adenocarcinoma (stage IIa). Underwent pancreaticoduodenectomy (Whipple procedure). ICU stay for 4 days, ward for 10 days. Clear resection margins achieved. Adjuvant gemcitabine-based chemotherapy planned.",
+    "claim_amount": 480000,
+    "submitted_at": "2025-06-18T07:00:00Z"
+  },
+  {
+    "claim_id": "CLM-047",
+    "policy_id": "POL-F600",
+    "patient_name": "Wu Jia-Hui",
+    "diagnosis_text": "Patient requested blepharoplasty for cosmetic correction of sagging upper eyelids and under-eye bags for aesthetic improvement. Outpatient procedure under local anesthesia. No medical indication documented.",
+    "claim_amount": 28000,
+    "submitted_at": "2025-06-20T10:30:00Z"
+  },
+  {
+    "claim_id": "CLM-048",
+    "policy_id": "POL-G700",
+    "patient_name": "Liu Zhi-Qiang",
+    "diagnosis_text": "Patient with suspicious lung nodule (2.1cm) in right lower lobe. Underwent video-assisted thoracoscopic surgery (VATS) with wedge resection and biopsy. Hospitalized for 3 days. Pathology confirmed pulmonary hamartoma, benign.",
+    "claim_amount": 46000,
+    "submitted_at": "2025-06-23T09:00:00Z"
+  },
+  {
+    "claim_id": "CLM-049",
+    "policy_id": "POL-H800",
+    "patient_name": "Xu Shu-Fen",
+    "diagnosis_text": "Patient with right axillary lymph node metastasis from primary breast cancer. Underwent right axillary lymph node dissection. Hospitalized for 2 days. Drain removed on day 2. Referred to radiation oncology for post-operative radiotherapy planning.",
+    "claim_amount": 42000,
+    "submitted_at": "2025-06-25T11:00:00Z"
+  },
+  {
+    "claim_id": "CLM-050",
+    "policy_id": "POL-I900",
+    "patient_name": "Yang Jing-Wen",
+    "diagnosis_text": "Patient with high myopia (-8.00 diopters) requested LASIK laser eye surgery for vision correction. Underwent bilateral LASIK procedure. Outpatient surgery suite. Vision corrected to 20/20 bilaterally. Post-op drops for 4 weeks.",
+    "claim_amount": 45000,
+    "submitted_at": "2025-06-28T14:00:00Z"
+  }
+]
