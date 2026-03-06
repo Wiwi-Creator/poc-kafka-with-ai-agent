@@ -1,0 +1,215 @@
+# Architecture & Design: Multi-Agent Insurance Claim System
+
+> **Tech Stack:** Google ADK + Kafka + Docker Compose
+> **Runtime:** Local (Docker), Cloud-LLM (Gemini API)
+
+---
+
+## 1. System Architecture
+
+### 1.1 Kafka Message Flow
+
+```
+Producer                    Kafka Broker                 Consumer
+┌──────────┐    publish     ┌──────────────┐    poll     ┌──────────────┐
+│ 50 JSON   │──────────────>│  insurance-  │────────────>│ Agent System │
+│ claims    │               │  claims      │             │ (3 agents)   │
+└───────────┘               │  (topic)     │             └──────────────┘
+                            └──────────────┘
+```
+
+- **Topic**: `insurance-claims` — single partition, single consumer group
+- **Serialization**: JSON (UTF-8)
+- **Offset reset**: `earliest` — consumer reads from the beginning
+- **Consumer timeout**: 120 seconds — exits after no new messages
+
+### 1.2 AI Agent Workflow
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant K as Kafka: insurance-claims
+    participant C as Consumer / Orchestrator
+    participant A1 as Agent 1: Extraction
+    participant A2 as Agent 2: Reviewer
+    participant Tool as Tools (policy_lookup, claim_history)
+    participant A3 as Agent 3: Decider
+    participant KR as Kafka: claim-results
+
+    P ->> K: Publish claim JSON
+    C ->> K: Poll message
+    K -->> C: claim JSON
+
+    C ->> A1: diagnosis_text
+    Note over A1: Extract surgery, disease,<br/>severity, hospitalization days
+    A1 -->> C: structured features (JSON)
+
+    C ->> A2: features + policy_id + claim_amount
+    A2 ->> Tool: check_policy_rules(policy_id, surgery_type)
+    Tool -->> A2: policy coverage & limits
+    A2 ->> Tool: get_claim_history(policy_id)
+    Tool -->> A2: past claims for this policy
+    Note over A2: Compare claim vs policy rules
+    A2 -->> C: verification result (JSON)
+
+    C ->> A3: features + verification result
+    Note over A3: Synthesize final verdict + reason
+    A3 -->> C: APPROVED / DENIED / MANUAL_REVIEW
+
+    C ->> KR: Publish decision JSON
+```
+
+---
+
+## 2. Tech Stack
+
+| Component       | Technology              | Purpose                             |
+|-----------------|-------------------------|-------------------------------------|
+| Agent Framework | `google-adk` (v1.26+)  | Multi-agent orchestration, Tool Use |
+| LLM             | Gemini 2.5 Flash        | NLU, reasoning, decision            |
+| Message Queue   | Apache Kafka            | Decouple ingestion from processing  |
+| Container       | Docker Compose          | One-command local deployment        |
+| Language        | Python 3.11             | All application code                |
+| Auth            | `GOOGLE_API_KEY` env var | No GCP project needed              |
+
+---
+
+## 3. Agent Design
+
+### Agent 1: Extraction
+
+Extracts structured medical features from free-text diagnosis.
+
+```python
+class ExtractionResult(BaseModel):
+    surgery_type: str
+    disease: str
+    hospitalization_days: int
+    severity: Literal["low", "medium", "high"]
+```
+
+### Agent 2: Policy Reviewer (Tool Use)
+
+Verifies claim against policy rules and claim history by calling two tools. ADK handles the function calling loop automatically:
+
+1. Gemini sees the tool declarations
+2. Gemini decides to call `check_policy_rules` and `get_claim_history`
+3. ADK executes the Python functions locally
+4. ADK sends results back to Gemini
+5. Gemini generates the final review
+
+```python
+class ReviewResult(BaseModel):
+    policy_found: bool
+    policy_status: str          # active / expired
+    is_covered: bool
+    is_excluded: bool
+    matched_exclusion: str | None
+    max_per_claim: int
+    claim_amount: int
+    amount_within_limit: bool
+    annual_remaining: int
+    verification_summary: str
+```
+
+### Agent 3: Final Decider
+
+Synthesizes extraction + review into a verdict.
+
+```python
+class Decision(BaseModel):
+    claim_id: str
+    verdict: Literal["APPROVED", "DENIED", "MANUAL_REVIEW"]
+    reason: str
+    approved_amount: float
+    flags: list[str]  # e.g. ["over_limit", "excluded_surgery"]
+```
+
+**Decision rules:**
+- `APPROVED`: policy active + surgery covered + not excluded + within limits
+- `DENIED`: expired policy / excluded surgery / no coverage / over limit
+- `MANUAL_REVIEW`: edge cases or conflicting signals
+
+---
+
+## 4. Sample Data
+
+### Insurance Claims (`producer/data/sample_claims.json`)
+
+50 claims across 10 patients and 9 policies, covering diverse medical scenarios:
+
+| Claim ID | Patient | Surgery | Amount | Policy | Expected Scenario |
+|----------|---------|---------|--------|--------|-------------------|
+| CLM-001 | Wang Xiao-Ming | Appendectomy | 50,000 | POL-A100 | Over per-claim limit (30k) |
+| CLM-002 | Lin Mei-Ling | Cholecystectomy | 25,000 | POL-B200 | Normal approval |
+| CLM-003 | Chen Da-Wei | Rhinoplasty | 80,000 | POL-C300 | Cosmetic surgery exclusion |
+| CLM-004 | Zhang Li-Hua | ACL Reconstruction | 120,000 | POL-D400 | Expired policy |
+| CLM-005 | Huang Yu-Ting | Emergency PCI | 350,000 | POL-E500 | High severity, premium plan |
+| CLM-006 | Wu Jia-Hui | Health Screening | 15,000 | POL-F600 | Preventive checkup exclusion |
+| CLM-007 | Liu Zhi-Qiang | Microdiscectomy | 45,000 | POL-G700 | Normal approval |
+| CLM-008 | Xu Shu-Fen | ORIF (fracture) | 35,000 | POL-H800 | Normal approval |
+| CLM-009 | Yang Jing-Wen | Cataract Surgery | 28,000 | POL-I900 | No surgery coverage |
+| CLM-010 | Wang Xiao-Ming | Hernia Repair | 40,000 | POL-A100 | Same patient, over limit |
+| CLM-011 ~ CLM-050 | (same 10 patients) | Various | Various | Various | Extended scenarios |
+
+### Insurance Policies (`agent_system/data/policy_db.json`)
+
+9 policies with varying plan tiers, limits, and exclusions:
+
+| Policy | Holder | Plan | Per-Claim Limit | Annual Limit | Status | Key Exclusions |
+|--------|--------|------|----------------|--------------|--------|----------------|
+| POL-A100 | Wang Xiao-Ming | Basic Medical | 30,000 | 200,000 | active | cosmetic, preventive |
+| POL-B200 | Lin Mei-Ling | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive, dental |
+| POL-C300 | Chen Da-Wei | Basic Medical | 40,000 | 200,000 | active | cosmetic, preventive |
+| POL-D400 | Zhang Li-Hua | Basic Medical | 60,000 | 250,000 | **expired** | cosmetic, preventive |
+| POL-E500 | Huang Yu-Ting | Premium Medical | 500,000 | 1,000,000 | active | cosmetic |
+| POL-F600 | Wu Jia-Hui | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive, dental |
+| POL-G700 | Liu Zhi-Qiang | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive |
+| POL-H800 | Xu Shu-Fen | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive |
+| POL-I900 | Yang Jing-Wen | Basic Medical | 20,000 | 150,000 | active | cosmetic, preventive, elective surgery |
+
+> POL-I900 has `surgery_coverage: false` — all surgical claims will be denied regardless of amount.
+
+### Historical Claims (`agent_system/data/claims_history.json`)
+
+Pre-seeded past claims per policy, used by Agent 2 to detect duplicates and assess claim frequency:
+
+| Policy | Past Claims | Notable |
+|--------|-------------|---------|
+| POL-B200 | 1 | knee arthroscopy, APPROVED |
+| POL-D400 | 1 | hernia repair, APPROVED |
+| POL-E500 | 1 | cardiac catheterization, APPROVED |
+| POL-G700 | 2 | gallbladder + colonoscopy, both APPROVED |
+| POL-H800 | 3 | includes 1 cosmetic surgery DENIED |
+
+---
+
+## 5. Key Design Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Agent chaining | Sequential via Orchestrator | Full control over data flow between agents, easier debugging |
+| Tool Use | Python functions passed to ADK | ADK auto-handles function calling loop; no manual parsing needed |
+| Session management | `InMemorySessionService`, fresh session per agent call | Agents are single-shot; no conversation history needed |
+| Output schema | Pydantic models | Enforces structured JSON output from the LLM |
+| LLM model | Gemini 2.5 Flash | Fast inference, supports function calling, cost-effective |
+| Policy/History data | Local JSON files (no cache) | Simulates DB point-query; cache removed for data freshness |
+
+---
+
+## 5. Token Usage Tracking
+
+Token consumption is tracked via ADK's `after_model_callback` on each agent:
+
+```python
+extraction_agent = Agent(
+    ...
+    after_model_callback=tracker.create_callback("extraction_agent"),
+)
+
+def callback(*, callback_context, llm_response):
+    usage = llm_response.usage_metadata
+    # Records: prompt_tokens, candidates_tokens, thoughts_tokens, total_tokens
+```
+
+**Note:** Reviewer agent uses ~2x tokens compared to other agents because it makes 2 LLM calls per claim (tool call + final response). Gemini 2.5 Flash also produces internal chain-of-thought (thoughts tokens) which count toward total usage.
