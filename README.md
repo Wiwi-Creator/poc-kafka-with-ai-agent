@@ -10,29 +10,61 @@ graph LR
 
     subgraph "Docker Compose"
         K((Kafka Broker<br/>+ Zookeeper))
-
-        subgraph "AI Agent System Container"
-            C[Kafka Consumer] -- "2. Poll" --> K
-            C -- "3. Trigger" --> O[Orchestrator]
-            O --> E[ADK Agent 1<br/>Extraction]
-            O --> R[ADK Agent 2<br/>Policy Reviewer]
-            O --> D[ADK Agent 3<br/>Final Decider]
-            R -- "Tool Use" --> T1[check_policy_rules<br/>policy_db.json]
-            R -- "Tool Use" --> T2[get_claim_history<br/>claims_history.json]
-        end
-
         KUI[Kafka UI<br/>:8080]
+
+        CS[consumer-service] -- "2. Poll" --> K
+        CS -- "3. Forward" --> KP[Kafka: claims-pending]
+
+        subgraph "ai-agent-service"
+            KP -- "4. Poll" --> O[Orchestrator]
+            O --> E[Agent 1<br/>Extraction]
+            O --> R[Agent 2<br/>Policy Reviewer]
+            O --> D[Agent 3<br/>Final Decider]
+            R -- "Tool Use" --> T1[check_policy_rules]
+            R -- "Tool Use" --> T2[get_claim_history]
+        end
     end
 
     subgraph "Gemini API"
-        E -- "API Call" --> G[gemini-2.5-flash]
-        R -- "API Call" --> G
-        D -- "API Call" --> G
+        E & R & D -- "API Call" --> G[gemini-2.5-flash]
     end
 
-    O -- "4. Write Result" --> KR[Kafka: claim-results]
-    O -- "5. Save" --> RF[results/predictions.json]
+    O -- "5. Publish" --> KR[Kafka: claim-results]
+    O -- "6. Save" --> RF[results/predictions.json]
 ```
+
+## Architecture Evolution
+
+### v1 — Single Service (original)
+
+```
+producer → insurance-claims → agent-system (poll + LLM in same loop)
+                                    └── predictions.json
+```
+
+**Problem**: LLM processing blocks the consumer loop. Each claim takes ~30-60s,
+causing Kafka to trigger rebalance (`CommitFailedError`) after several claims.
+
+### v2 — Split Services (current)
+
+```
+producer → insurance-claims → consumer-service (fast, only forwards)
+                                    └── claims-pending → ai-agent-service (LLM)
+                                                              └── claim-results
+                                                              └── predictions.json
+```
+
+**Improvement**: `consumer-service` polls and commits in milliseconds. `ai-agent-service`
+can take as long as needed per claim without affecting Kafka heartbeat.
+
+| | v1 | v2 |
+|---|---|---|
+| Services | 1 | 2 |
+| Topics | 2 | 3 |
+| Kafka timeout risk | Yes | No |
+| Responsibility | Mixed | Separated |
+
+---
 
 ## Agent Pipeline
 
@@ -66,9 +98,12 @@ poc-kafka-with-ai-agent/
 │   └── data/
 │       └── sample_claims.json  # 50 simulated insurance claims
 │
-├── agent_system/
-│   ├── Dockerfile
-│   ├── main.py                 # Kafka consumer + result persistence
+├── consumer_service/
+│   ├── main.py                 # Poll insurance-claims, forward to claims-pending
+│   └── Dockerfile
+│
+├── ai_agent_service/
+│   ├── main.py                 # Poll claims-pending, run LLM pipeline
 │   ├── orchestrator.py         # Sequential 3-agent pipeline
 │   ├── token_tracker.py        # Token usage tracking via after_model_callback
 │   ├── test_local.py           # Local test without Kafka
@@ -122,7 +157,7 @@ pip install -r requirements.txt
 docker compose up -d
 ```
 
-This starts Kafka + Zookeeper, Kafka UI (`:8080`), and the Agent System.
+This starts Kafka + Zookeeper, Kafka UI (`:8080`), `consumer-service`, and `ai-agent-service`.
 
 ### 4. Send claims
 
@@ -137,8 +172,8 @@ python producer/main.py --count 5 --interval 1
 ### 5. Monitor
 
 ```bash
-# Agent system logs
-docker logs -f agent-system
+docker logs -f consumer-service    # forwarding logs
+docker logs -f ai-agent-service    # LLM processing logs
 
 # Results file (updated after each claim)
 cat results/predictions.json
@@ -148,9 +183,10 @@ cat results/predictions.json
 
 | Page | What you can see |
 |------|-----------------|
-| `insurance-claims` topic | Raw claim JSON as they arrive |
+| `insurance-claims` topic | Raw claims from producer |
+| `claims-pending` topic | Forwarded by consumer-service |
 | `claim-results` topic | Agent decisions |
-| Consumer groups | `agent-system-group` lag |
+| Consumer groups | `consumer-service-group`, `ai-agent-service-group` |
 
 ### 6. Shut down
 
@@ -163,7 +199,7 @@ docker compose down
 ```bash
 source .venv/bin/activate
 set -a && source .env && set +a
-python agent_system/test_local.py
+python ai_agent_service/test_local.py
 ```
 
 ## Re-run
