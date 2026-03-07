@@ -119,6 +119,44 @@ sequenceDiagram
 
 ---
 
+### 1.3 AI Agent Workflow
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant K as Kafka: insurance-claims
+    participant C as Consumer / Orchestrator
+    participant A1 as Agent 1: Extraction
+    participant A2 as Agent 2: Reviewer
+    participant Tool as Tools (policy_lookup, claim_history)
+    participant A3 as Agent 3: Decider
+    participant KR as Kafka: claim-results
+
+    P ->> K: Publish claim JSON
+    C ->> K: Poll message
+    K -->> C: claim JSON
+
+    C ->> A1: diagnosis_text
+    Note over A1: Extract surgery, disease,<br/>severity, hospitalization days
+    A1 -->> C: structured features (JSON)
+
+    C ->> A2: features + policy_id + claim_amount
+    A2 ->> Tool: check_policy_rules(policy_id, surgery_type)
+    Tool -->> A2: policy coverage & limits
+    A2 ->> Tool: get_claim_history(policy_id)
+    Tool -->> A2: past claims for this policy
+    Note over A2: Compare claim vs policy rules
+    A2 -->> C: verification result (JSON)
+
+    C ->> A3: features + verification result
+    Note over A3: Synthesize final verdict + reason
+    A3 -->> C: APPROVED / DENIED / MANUAL_REVIEW
+
+    C ->> KR: Publish decision JSON
+```
+
+---
+
 ## 2. Tech Stack
 
 | Component       | Technology              | Purpose                             |
@@ -242,7 +280,7 @@ Pre-seeded past claims per policy, used by Agent 2 to calculate annual budget co
 
 ---
 
-## 6. Key Design Decisions
+## 5. Key Design Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
@@ -255,7 +293,7 @@ Pre-seeded past claims per policy, used by Agent 2 to calculate annual budget co
 
 ---
 
-## 5. Token Usage Tracking
+## 6. Token Usage Tracking
 
 Token consumption is tracked via ADK's `after_model_callback` on each agent:
 

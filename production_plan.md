@@ -4,7 +4,7 @@
 
 | Area | POC | Production |
 |------|-----|------------|
-| Offset commit | auto-commit, before processing completes | manual commit, only after result is persisted |
+| Offset commit | manual commit after forwarding | manual commit, only after result is persisted |
 | Failure handling | fallback to `MANUAL_REVIEW`, no retry | Dead Letter Topic, retryable, separate from normal results |
 | Scale out | single instance | multiple replicas + partitions |
 | Result storage | `predictions.json` file | PostgreSQL / BigQuery |
@@ -86,7 +86,7 @@ Benefits: shared across all instances, live updates without redeployment, querya
 | `ai-agent-service` | × 1 | replicas: N, HPA auto-scale |
 | Kafka | container | Confluent Cloud / MSK / Strimzi |
 | PostgreSQL | — | Cloud SQL / RDS / AlloyDB |
-| Redis | — | Cloud Memorystore / ElastiCache |
+
 
 HPA scales `ai-agent-service` based on `claims-pending` consumer lag:
 
