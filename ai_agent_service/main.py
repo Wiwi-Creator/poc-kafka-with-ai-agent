@@ -36,6 +36,7 @@ def create_consumer(retries: int = 10, delay: int = 5) -> KafkaConsumer:
                 auto_offset_reset="earliest",
                 group_id="ai-agent-service-group",
                 consumer_timeout_ms=-1,
+                max_poll_interval_ms=600000,  # 10 min, covers single claim LLM processing (~30-60s)
             )
             log.info("Connected to Kafka at %s, subscribed to [%s]", KAFKA_BROKER, INPUT_TOPIC)
             return consumer

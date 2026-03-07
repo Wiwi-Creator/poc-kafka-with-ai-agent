@@ -10,18 +10,34 @@
 ### 1.1 Kafka Message Flow
 
 ```
-Producer                    Kafka Broker                 Consumer
-┌──────────┐    publish     ┌──────────────┐    poll     ┌──────────────┐
-│ 50 JSON   │──────────────>│  insurance-  │────────────>│ Agent System │
-│ claims    │               │  claims      │             │ (3 agents)   │
-└───────────┘               │  (topic)     │             └──────────────┘
-                            └──────────────┘
+producer/main.py
+    │
+    ▼
+Kafka: insurance-claims
+    │
+    ▼
+consumer-service          ← fast forward only, no LLM
+    │
+    ▼
+Kafka: claims-pending
+    │
+    ▼
+ai-agent-service          ← 3-agent LLM pipeline
+    │
+    ▼
+Kafka: claim-results
 ```
 
-- **Topic**: `insurance-claims` — single partition, single consumer group
+| Topic | Producer | Consumer | Purpose |
+|-------|----------|----------|---------|
+| `insurance-claims` | `producer/main.py` | `consumer-service` | Raw claim ingestion |
+| `claims-pending` | `consumer-service` | `ai-agent-service` | Decouples fast poll from slow LLM |
+| `claim-results` | `ai-agent-service` | downstream services | Final decisions |
+
 - **Serialization**: JSON (UTF-8)
 - **Offset reset**: `earliest` — consumer reads from the beginning
-- **Consumer timeout**: none (`-1`) — keeps running until manually stopped
+- **consumer-service**: `enable_auto_commit=False`, commits after forwarding
+- **ai-agent-service**: `max_poll_interval_ms=600000` (10 min) to accommodate LLM processing time
 
 ### 1.2 AI Agent Workflow
 
@@ -152,7 +168,7 @@ class Decision(BaseModel):
 | CLM-010 | Wang Xiao-Ming | Hernia Repair | 40,000 | POL-A100 | Same patient, over limit |
 | CLM-011 ~ CLM-050 | (same 10 patients) | Various | Various | Various | Extended scenarios |
 
-### Insurance Policies (`agent_system/data/policy_db.json`)
+### Insurance Policies (`ai_agent_service/data/policy_db.json`)
 
 9 policies with varying plan tiers, limits, and exclusions:
 
@@ -170,7 +186,7 @@ class Decision(BaseModel):
 
 > POL-I900 has `surgery_coverage: false` — all surgical claims will be denied regardless of amount.
 
-### Historical Claims (`agent_system/data/claims_history.json`)
+### Historical Claims (`ai_agent_service/data/claims_history.json`)
 
 Pre-seeded past claims per policy, used by Agent 2 to calculate annual budget consumed:
 
