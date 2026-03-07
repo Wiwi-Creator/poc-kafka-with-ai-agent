@@ -4,34 +4,19 @@ A proof-of-concept multi-agent system that processes insurance claims through a 
 
 ## Architecture
 
-```mermaid
-graph LR
-    P[producer/main.py<br/>Local Script] -- "1. Send JSON" --> K
+![alt text](.images/image.png)
 
-    subgraph "Docker Compose"
-        K((Kafka Broker<br/>+ Zookeeper))
-        KUI[Kafka UI<br/>:8080]
+### Kafka Elements
 
-        CS[consumer-service] -- "2. Poll" --> K
-        CS -- "3. Forward" --> KP[Kafka: claims-pending]
-
-        subgraph "ai-agent-service"
-            KP -- "4. Poll" --> O[Orchestrator]
-            O --> E[Agent 1<br/>Extraction]
-            O --> R[Agent 2<br/>Policy Reviewer]
-            O --> D[Agent 3<br/>Final Decider]
-            R -- "Tool Use" --> T1[check_policy_rules]
-            R -- "Tool Use" --> T2[get_claim_history]
-        end
-    end
-
-    subgraph "Gemini API"
-        E & R & D -- "API Call" --> G[gemini-2.5-flash]
-    end
-
-    O -- "5. Publish" --> KR[Kafka: claim-results]
-    O -- "6. Save" --> RF[results/predictions.json]
-```
+| Element | Value | Role |
+|---------|-------|------|
+| **Topic** | `insurance-claims` | Raw claims published by the producer |
+| **Topic** | `claims-pending` | Forwarded by consumer-service; decouples fast poll from slow LLM |
+| **Topic** | `claim-results` | Final decisions published by ai-agent-service |
+| **Consumer Group** | `consumer-service-group` | Subscribes to `insurance-claims`; commits offset after forwarding |
+| **Consumer Group** | `ai-agent-service-group` | Subscribes to `claims-pending`; `max_poll_interval_ms=600s` to allow LLM processing |
+| **Offset reset** | `earliest` | Both consumers replay from the beginning on restart |
+| **Partition** | 1 per topic (POC) | Can be scaled to N for parallel processing in production |
 
 ## Architecture Evolution
 
