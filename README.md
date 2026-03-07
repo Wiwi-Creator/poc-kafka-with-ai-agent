@@ -4,7 +4,7 @@ A proof-of-concept multi-agent system that processes insurance claims through a 
 
 ## Architecture
 
-![alt text](.images/image.png)
+![Architecture Diagram](.images/image.png)
 
 ### Kafka Elements
 
@@ -20,8 +20,6 @@ A proof-of-concept multi-agent system that processes insurance claims through a 
 
 
 ## Agent Pipeline
-
-Each claim flows through 3 agents sequentially:
 
 ```
 Diagnosis Text --> [Extraction Agent] --> [Policy Reviewer] --> [Final Decider] --> Verdict
@@ -76,7 +74,7 @@ poc-kafka-with-ai-agent/
 │   ├── run_evaluation.py       # Main evaluation runner
 │   └── README.md               # How to run evaluation
 │
-└── results/                    # Output (Docker volume mount)
+└── results/                    # Output (gitignored, created at runtime)
     ├── predictions.json
     ├── token_usage.json
     └── evaluation_report.json

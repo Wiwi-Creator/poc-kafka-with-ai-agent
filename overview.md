@@ -41,7 +41,7 @@ Kafka: claim-results
 
 ---
 
-## 1.2 Architecture Evolution
+### 1.2 Architecture Evolution
 
 ### v1 — Single Service (original)
 
@@ -232,7 +232,7 @@ class Decision(BaseModel):
 
 ### Insurance Claims (`producer/data/sample_claims.json`)
 
-50 claims across 10 patients and 9 policies, covering diverse medical scenarios:
+50 claims across 10 patients and 9 policies:
 
 | Claim ID | Patient | Surgery | Amount | Policy | Expected Scenario |
 |----------|---------|---------|--------|--------|-------------------|
@@ -250,7 +250,7 @@ class Decision(BaseModel):
 
 ### Insurance Policies (`ai_agent_service/data/policy_db.json`)
 
-9 policies with varying plan tiers, limits, and exclusions:
+9 policies:
 
 | Policy | Holder | Plan | Per-Claim Limit | Annual Limit | Status | Key Exclusions |
 |--------|--------|------|----------------|--------------|--------|----------------|

@@ -74,8 +74,6 @@ Local JSON files don't support concurrent reads across multiple instances or liv
 | policy_lookup | reads `data/policy_db.json` | `SELECT * FROM policies WHERE policy_id = $1` |
 | claim_history | reads `data/claims_history.json` | `SELECT * FROM claims_history WHERE policy_id = $1` |
 
-Benefits: shared across all instances, live updates without redeployment, queryable with indexes.
-
 ---
 
 ### Docker Compose → Kubernetes
