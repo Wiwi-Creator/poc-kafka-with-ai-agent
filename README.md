@@ -18,38 +18,6 @@ A proof-of-concept multi-agent system that processes insurance claims through a 
 | **Offset reset** | `earliest` | Both consumers replay from the beginning on restart |
 | **Partition** | 1 per topic (POC) | Can be scaled to N for parallel processing in production |
 
-## Architecture Evolution
-
-### v1 — Single Service (original)
-
-```
-producer → insurance-claims → agent-system (poll + LLM in same loop)
-                                    └── predictions.json
-```
-
-**Problem**: LLM processing blocks the consumer loop. Each claim takes ~30-60s,
-causing Kafka to trigger rebalance (`CommitFailedError`) after several claims.
-
-### v2 — Split Services (current)
-
-```
-producer → insurance-claims → consumer-service (fast, only forwards)
-                                    └── claims-pending → ai-agent-service (LLM)
-                                                              └── claim-results
-                                                              └── predictions.json
-```
-
-**Improvement**: `consumer-service` polls and commits in milliseconds. `ai-agent-service`
-can take as long as needed per claim without affecting Kafka heartbeat.
-
-| | v1 | v2 |
-|---|---|---|
-| Services | 1 | 2 |
-| Topics | 2 | 3 |
-| Kafka timeout risk | Yes | No |
-| Responsibility | Mixed | Separated |
-
----
 
 ## Agent Pipeline
 
@@ -177,21 +145,4 @@ cat results/predictions.json
 
 ```bash
 docker compose down
-```
-
-## Local Test (without Docker)
-
-```bash
-source .venv/bin/activate
-set -a && source .env && set +a
-python ai_agent_service/test_local.py
-```
-
-## Re-run
-
-To reprocess all claims from scratch, reset Kafka offsets by restarting:
-
-```bash
-docker compose down && docker compose up -d
-python producer/main.py
 ```

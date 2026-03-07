@@ -39,41 +39,83 @@ Kafka: claim-results
 - **consumer-service**: `enable_auto_commit=False`, commits after forwarding
 - **ai-agent-service**: `max_poll_interval_ms=600000` (10 min) to accommodate LLM processing time
 
-### 1.2 AI Agent Workflow
+---
+
+## 1.2 Architecture Evolution
+
+### v1 — Single Service (original)
+
+**Problem**: The single service ran poll → LLM → commit in the same loop. Each claim takes ~40s. After several claims the total time exceeded `max_poll_interval_ms` (default 300s), causing Kafka to assume the consumer was dead and trigger a rebalance (`CommitFailedError`).
 
 ```mermaid
 sequenceDiagram
-    participant P as Producer
     participant K as Kafka: insurance-claims
-    participant C as Consumer / Orchestrator
-    participant A1 as Agent 1: Extraction
-    participant A2 as Agent 2: Reviewer
-    participant Tool as Tools (policy_lookup, claim_history)
-    participant A3 as Agent 3: Decider
-    participant KR as Kafka: claim-results
+    participant A as agent-system (single service)
+    participant L as Gemini API
 
-    P ->> K: Publish claim JSON
-    C ->> K: Poll message
-    K -->> C: claim JSON
+    Note over K,A: max_poll_interval_ms = 300s (default)
 
-    C ->> A1: diagnosis_text
-    Note over A1: Extract surgery, disease,<br/>severity, hospitalization days
-    A1 -->> C: structured features (JSON)
+    A->>K: poll() → CLM-001
+    A->>L: LLM pipeline
+    L-->>A: decision
+    A->>K: commit()
 
-    C ->> A2: features + policy_id + claim_amount
-    A2 ->> Tool: check_policy_rules(policy_id, surgery_type)
-    Tool -->> A2: policy coverage & limits
-    A2 ->> Tool: get_claim_history(policy_id)
-    Tool -->> A2: past claims for this policy
-    Note over A2: Compare claim vs policy rules
-    A2 -->> C: verification result (JSON)
+    A->>K: poll() → CLM-002
+    A->>L: LLM pipeline
+    L-->>A: decision
+    A->>K: commit()
 
-    C ->> A3: features + verification result
-    Note over A3: Synthesize final verdict + reason
-    A3 -->> C: APPROVED / DENIED / MANUAL_REVIEW
+    A->>K: poll() → CLM-003
+    A->>L: LLM pipeline
+    L-->>A: decision
 
-    C ->> KR: Publish decision JSON
+    Note over K,A: Cumulative wait > 300s, Kafka assumes consumer is dead
+
+    A->>K: commit() Error : CommitFailedError
+    Note over K,A: Consumer kicked from group, rebalance triggered
 ```
+
+### v2 — Split Services (current)
+
+**Improvement**: `consumer-service` only polls and forwards in milliseconds, never at risk of timeout. `ai-agent-service` has its own independent timer with `max_poll_interval_ms=600s`, well above the ~40s needed per claim.
+
+```mermaid
+sequenceDiagram
+    participant K1 as Kafka: insurance-claims
+    participant CS as consumer-service
+    participant K2 as Kafka: claims-pending
+    participant AI as ai-agent-service
+    participant L as Gemini API
+
+    Note over CS: poll + forward only, completes in milliseconds
+
+    CS->>K1: poll() → CLM-001
+    CS->>K2: forward
+    CS->>K1: commit()
+
+    CS->>K1: poll() → CLM-002
+    CS->>K2: forward
+    CS->>K1: commit()
+
+    Note over AI: max_poll_interval_ms = 600s, independent timer
+
+    AI->>K2: poll() → CLM-001
+    AI->>L: LLM pipeline
+    L-->>AI: decision
+    AI->>K2: commit()
+
+    AI->>K2: poll() → CLM-002
+    AI->>L: LLM pipeline
+    L-->>AI: decision
+    AI->>K2: commit()
+```
+
+| | v1 | v2 |
+|---|---|---|
+| Services | 1 | 2 |
+| Topics | 2 | 3 |
+| Kafka timeout risk | Yes | No |
+| Responsibility | Mixed | Separated |
 
 ---
 
