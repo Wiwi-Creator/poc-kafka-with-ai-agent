@@ -86,28 +86,6 @@ Local JSON files don't support concurrent reads across multiple instances or liv
 | PostgreSQL | — | Cloud SQL / RDS / AlloyDB |
 
 
-HPA scales `ai-agent-service` based on `claims-pending` consumer lag:
-
-```yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: ai-agent-service-hpa
-spec:
-  scaleTargetRef:
-    name: ai-agent-service
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
-    - type: External
-      external:
-        metric:
-          name: kafka_consumer_lag
-        target:
-          type: AverageValue
-          averageValue: "10"
-```
-
 ---
 
 ### LLM Observability

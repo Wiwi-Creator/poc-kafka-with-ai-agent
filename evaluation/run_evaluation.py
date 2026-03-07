@@ -22,7 +22,7 @@ PREDICTIONS_FILE = os.getenv(
     "PREDICTIONS_FILE",
     os.path.join(_DIR, "..", "results", "predictions.json"),
 )
-POLICY_DB_FILE = os.path.join(_DIR, "..", "agent_system", "data", "policy_db.json")
+POLICY_DB_FILE = os.path.join(_DIR, "..", "ai_agent_service", "data", "policy_db.json")
 CLAIMS_FILE = os.path.join(_DIR, "..", "producer", "data", "sample_claims.json")
 REPORT_JSON = os.path.join(_DIR, "..", "results", "evaluation_report.json")
 REPORT_MD = os.path.join(_DIR, "..", "results", "evaluation_report.md")
