@@ -272,11 +272,15 @@ Pre-seeded past claims per policy, used by Agent 2 to calculate annual budget co
 
 | Policy | Past Claims | Notable |
 |--------|-------------|---------|
+| POL-A100 | 0 | — |
 | POL-B200 | 1 | knee arthroscopy, APPROVED |
+| POL-C300 | 0 | — |
 | POL-D400 | 1 | hernia repair, APPROVED |
 | POL-E500 | 1 | cardiac catheterization, APPROVED |
-| POL-G700 | 2 | gallbladder + colonoscopy, both APPROVED |
-| POL-H800 | 3 | includes 1 cosmetic surgery DENIED |
+| POL-F600 | 0 | — |
+| POL-G700 | 2 | gallbladder removal + colonoscopy, both APPROVED |
+| POL-H800 | 3 | spinal fusion APPROVED, hip replacement APPROVED, cosmetic surgery DENIED |
+| POL-I900 | 0 | — |
 
 ---
 
@@ -307,5 +311,3 @@ def callback(*, callback_context, llm_response):
     usage = llm_response.usage_metadata
     # Records: prompt_tokens, candidates_tokens, thoughts_tokens, total_tokens
 ```
-
-**Note:** Reviewer agent uses ~2x tokens compared to other agents because it makes 2 LLM calls per claim (tool call + final response). Gemini 2.5 Flash also produces internal chain-of-thought (thoughts tokens) which count toward total usage.
