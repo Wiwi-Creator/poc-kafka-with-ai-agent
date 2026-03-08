@@ -236,16 +236,16 @@ class Decision(BaseModel):
 
 | Claim ID | Patient | Surgery | Amount | Policy | Expected Scenario |
 |----------|---------|---------|--------|--------|-------------------|
-| CLM-001 | Wang Xiao-Ming | Appendectomy | 50,000 | POL-A100 | Over per-claim limit (30k) |
-| CLM-002 | Lin Mei-Ling | Cholecystectomy | 25,000 | POL-B200 | Normal approval |
+| CLM-001 | Wang Xiao-Ming | Laparoscopic Appendectomy | 50,000 | POL-A100 | Over per-claim limit (30k) |
+| CLM-002 | Lin Mei-Ling | Laparoscopic Cholecystectomy | 25,000 | POL-B200 | Normal approval |
 | CLM-003 | Chen Da-Wei | Rhinoplasty | 80,000 | POL-C300 | Cosmetic surgery exclusion |
 | CLM-004 | Zhang Li-Hua | ACL Reconstruction | 120,000 | POL-D400 | Expired policy |
-| CLM-005 | Huang Yu-Ting | Emergency PCI | 350,000 | POL-E500 | High severity, premium plan |
-| CLM-006 | Wu Jia-Hui | Health Screening | 15,000 | POL-F600 | Preventive checkup exclusion |
-| CLM-007 | Liu Zhi-Qiang | Microdiscectomy | 45,000 | POL-G700 | Normal approval |
-| CLM-008 | Xu Shu-Fen | ORIF (fracture) | 35,000 | POL-H800 | Normal approval |
-| CLM-009 | Yang Jing-Wen | Cataract Surgery | 28,000 | POL-I900 | No surgery coverage |
-| CLM-010 | Wang Xiao-Ming | Hernia Repair | 40,000 | POL-A100 | Same patient, over limit |
+| CLM-005 | Huang Yu-Ting | Emergency PCI (STEMI) | 350,000 | POL-E500 | High severity, premium plan |
+| CLM-006 | Wu Jia-Hui | Annual Health Screening | 15,000 | POL-F600 | Preventive checkup exclusion |
+| CLM-007 | Liu Zhi-Qiang | Microdiscectomy (L4-L5) | 45,000 | POL-G700 | Normal approval |
+| CLM-008 | Xu Shu-Fen | ORIF (distal radius fracture) | 35,000 | POL-H800 | Normal approval |
+| CLM-009 | Yang Jing-Wen | Bilateral Cataract Surgery | 28,000 | POL-I900 | Elective surgery exclusion |
+| CLM-010 | Wang Xiao-Ming | Incisional Hernia Repair | 40,000 | POL-A100 | Same patient, over limit |
 | CLM-011 ~ CLM-050 | (same 10 patients) | Various | Various | Various | Extended scenarios |
 
 ### Insurance Policies (`ai_agent_service/data/policy_db.json`)
@@ -254,15 +254,15 @@ class Decision(BaseModel):
 
 | Policy | Holder | Plan | Per-Claim Limit | Annual Limit | Status | Key Exclusions |
 |--------|--------|------|----------------|--------------|--------|----------------|
-| POL-A100 | Wang Xiao-Ming | Basic Medical | 30,000 | 200,000 | active | cosmetic, preventive |
-| POL-B200 | Lin Mei-Ling | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive, dental |
-| POL-C300 | Chen Da-Wei | Basic Medical | 40,000 | 200,000 | active | cosmetic, preventive |
-| POL-D400 | Zhang Li-Hua | Basic Medical | 60,000 | 250,000 | **expired** | cosmetic, preventive |
-| POL-E500 | Huang Yu-Ting | Premium Medical | 500,000 | 1,000,000 | active | cosmetic |
-| POL-F600 | Wu Jia-Hui | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive, dental |
-| POL-G700 | Liu Zhi-Qiang | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive |
-| POL-H800 | Xu Shu-Fen | Standard Medical | 50,000 | 300,000 | active | cosmetic, preventive |
-| POL-I900 | Yang Jing-Wen | Basic Medical | 20,000 | 150,000 | active | cosmetic, preventive, elective surgery |
+| POL-A100 | Wang Xiao-Ming | Basic Medical | 30,000 | 200,000 | active | cosmetic surgery, preventive checkup |
+| POL-B200 | Lin Mei-Ling | Standard Medical | 50,000 | 300,000 | active | cosmetic surgery, preventive checkup, dental |
+| POL-C300 | Chen Da-Wei | Basic Medical | 40,000 | 200,000 | active | cosmetic surgery, preventive checkup |
+| POL-D400 | Zhang Li-Hua | Basic Medical | 60,000 | 250,000 | **expired** | cosmetic surgery, preventive checkup |
+| POL-E500 | Huang Yu-Ting | Premium Medical | 500,000 | 1,000,000 | active | cosmetic surgery |
+| POL-F600 | Wu Jia-Hui | Standard Medical | 50,000 | 300,000 | active | cosmetic surgery, preventive checkup, dental |
+| POL-G700 | Liu Zhi-Qiang | Standard Medical | 50,000 | 300,000 | active | cosmetic surgery, preventive checkup |
+| POL-H800 | Xu Shu-Fen | Standard Medical | 50,000 | 300,000 | active | cosmetic surgery, preventive checkup |
+| POL-I900 | Yang Jing-Wen | Basic Medical | 20,000 | 150,000 | active | cosmetic surgery, preventive checkup, elective surgery |
 
 > POL-I900 has `surgery_coverage: false` — all surgical claims will be denied regardless of amount.
 
