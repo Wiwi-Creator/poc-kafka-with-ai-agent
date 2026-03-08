@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Optional, Tuple
+from typing import Optional
 
 from google import genai
 from deepeval.models.base_model import DeepEvalBaseLLM
@@ -19,15 +19,15 @@ class GeminiJudge(DeepEvalBaseLLM):
     def load_model(self):
         return self._client
 
-    def generate(self, prompt: str, schema: Optional[type] = None) -> Tuple[str, float]:
+    def generate(self, prompt: str, schema: Optional[type] = None) -> str:
         client = self.load_model()
         response = client.models.generate_content(
             model=self.model_name,
             contents=prompt,
         )
-        return response.text, 0.0  # (response_text, cost)
+        return response.text
 
-    async def a_generate(self, prompt: str, schema: Optional[type] = None) -> Tuple[str, float]:
+    async def a_generate(self, prompt: str, schema: Optional[type] = None) -> str:
         return await asyncio.to_thread(self.generate, prompt, schema)
 
     def get_model_name(self) -> str:

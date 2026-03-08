@@ -37,6 +37,7 @@ def create_consumer(retries: int = 10, delay: int = 5) -> KafkaConsumer:
                 group_id="ai-agent-service-group",
                 consumer_timeout_ms=-1,
                 max_poll_interval_ms=600000,  # 10 min, covers single claim LLM processing (~30-60s)
+                max_poll_records=1,            # fetch one claim at a time, prevents batch accumulation timeout
             )
             log.info("Connected to Kafka at %s, subscribed to [%s]", KAFKA_BROKER, INPUT_TOPIC)
             return consumer
@@ -144,6 +145,8 @@ async def run():
 
         producer.send(OUTPUT_TOPIC, value=results[-1])
         producer.flush()
+        # manaul commit
+        # consumer.commit()
         log.info("[%s] Published decision to [%s]", claim_id, OUTPUT_TOPIC)
 
         save_results(results)

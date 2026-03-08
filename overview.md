@@ -45,7 +45,7 @@ Kafka: claim-results
 
 ### v1 — Single Service (original)
 
-**Problem**: The single service ran poll → LLM → commit in the same loop. Each claim takes ~40s. After several claims the total time exceeded `max_poll_interval_ms` (default 300s), causing Kafka to assume the consumer was dead and trigger a rebalance (`CommitFailedError`).
+**Problem**: The single service ran poll → LLM → commit in the same loop. Kafka's default `max_poll_records=500` means one `poll()` call can fetch many messages at once. The `for` loop then processes all of them without calling `poll()` again. If the producer sent 8 claims before the consumer started, the first poll fetches all 8. Each claim takes ~40s — so 8 × 40s = 320s, exceeding the default `max_poll_interval_ms=300s`. Kafka assumes the consumer is dead and triggers a rebalance (`CommitFailedError`).
 
 ```mermaid
 sequenceDiagram
@@ -53,31 +53,27 @@ sequenceDiagram
     participant A as agent-system (single service)
     participant L as Gemini API
 
-    Note over K,A: max_poll_interval_ms = 300s (default)
+    Note over K,A: max_poll_interval_ms = 300s (default), max_poll_records = 500
 
-    A->>K: poll() → CLM-001
-    A->>L: LLM pipeline
+    A->>K: poll() → fetches CLM-001 ~ CLM-008 at once
+    A->>L: LLM pipeline (CLM-001, ~40s)
     L-->>A: decision
     A->>K: commit()
 
-    A->>K: poll() → CLM-002
-    A->>L: LLM pipeline
+    A->>L: LLM pipeline (CLM-002, ~40s)
     L-->>A: decision
     A->>K: commit()
 
-    A->>K: poll() → CLM-003
-    A->>L: LLM pipeline
-    L-->>A: decision
+    Note over K,A: No poll() called since start. 8 × 40s = 320s > 300s
 
-    Note over K,A: Cumulative wait > 300s, Kafka assumes consumer is dead
-
+    A->>L: LLM pipeline (CLM-003...)
     A->>K: commit() Error : CommitFailedError
     Note over K,A: Consumer kicked from group, rebalance triggered
 ```
 
 ### v2 — Split Services (current)
 
-**Improvement**: `consumer-service` only polls and forwards in milliseconds, never at risk of timeout. `ai-agent-service` has its own independent timer with `max_poll_interval_ms=600s`, well above the ~40s needed per claim.
+**Improvement**: Splitting into two services separates fast ingestion from slow LLM processing. `consumer-service` only polls and forwards — completes in milliseconds, never at risk of timeout. `ai-agent-service` handles one claim at a time (`max_poll_records=1`) with its own independent timer (`max_poll_interval_ms=600s`), well above the ~40s needed per claim. The split also enables independent scaling: partition count on `claims-pending` determines how many `ai-agent-service` instances can run in parallel.
 
 ```mermaid
 sequenceDiagram
@@ -114,8 +110,10 @@ sequenceDiagram
 |---|---|---|
 | Services | 1 | 2 |
 | Topics | 2 | 3 |
+| `max_poll_records` | 500 (default) | 1 (ai-agent-service) |
 | Kafka timeout risk | Yes | No |
 | Responsibility | Mixed | Separated |
+| Scale | Only together | Independently |
 
 ---
 

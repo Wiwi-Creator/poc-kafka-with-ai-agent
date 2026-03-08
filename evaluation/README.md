@@ -4,10 +4,10 @@ LLM-as-a-Judge evaluation using [DeepEval](https://github.com/confident-ai/deepe
 
 ## Metrics
 
-| Metric | What it checks |
-|--------|---------------|
-| **Faithfulness** | Is the decision grounded in the policy? No unsupported claims. |
-| **Hallucination** | Does the output contradict facts stated in the policy? |
+| Metric | What it checks | Score |
+|--------|---------------|-------|
+| **Faithfulness** | Is the decision grounded in the policy? | Higher = more grounded. Pass if ≥ 0.7 |
+| **Hallucination** | Does the output contradict facts in the policy? | Lower = less hallucination. Pass if ≤ 0.5 |
 
 Judge model: `gemini-2.5-flash` (configurable via `JUDGE_MODEL` in `evaluator.py`)
 
@@ -28,6 +28,8 @@ python evaluation/run_evaluation.py
 Results are written to `results/`:
 
 - `evaluation_report.json` — per-claim scores, reasons, aggregated summary
+
+> Note: `hallucination_score` is the degree of hallucination (0.0 = none, 1.0 = full). A claim passes if score ≤ 0.5.
 
 ```json
 {
