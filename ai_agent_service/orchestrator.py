@@ -9,6 +9,7 @@ from google.genai.types import Content, Part
 from agents.extraction import extraction_agent
 from agents.reviewer import reviewer_agent
 from agents.decider import decider_agent
+from metrics import agent_duration_seconds, pipeline_duration_seconds
 from token_tracker import tracker
 
 log = logging.getLogger(__name__)
@@ -43,19 +44,11 @@ async def _run_agent(runner: Runner, user_id: str, session_id: str, message: str
 
 
 async def process_claim(claim: dict) -> dict:
-    """Process a single insurance claim through the 3-agent pipeline.
-
-    Args:
-        claim: Raw claim JSON with keys: claim_id, policy_id, patient_name,
-               diagnosis_text, claim_amount, submitted_at
-
-    Returns:
-        Decision dict with keys: claim_id, verdict, reason, approved_amount, flags
-    """
+    """Process a single insurance claim through the 3-agent pipeline."""
     claim_id = claim["claim_id"]
     user_id = f"claim-{claim_id}"
-    start_time = time.time()
 
+    start_time = time.time()
     log.info("[%s] Starting agent pipeline", claim_id)
     tracker.set_current_claim(claim_id)
 
@@ -66,16 +59,17 @@ async def process_claim(claim: dict) -> dict:
         session_service=session_service,
     )
     extraction_session_id = f"{claim_id}-extraction"
-
     extraction_prompt = (
         f"Extract medical features from this diagnosis:\n\n"
         f"{claim['diagnosis_text']}"
     )
 
     log.info("[%s] Agent 1 (Extraction): processing...", claim_id)
+    _t0 = time.time()
     extraction_raw = await _run_agent(
         extraction_runner, user_id, extraction_session_id, extraction_prompt
     )
+    agent_duration_seconds.labels(agent_name="extraction").observe(time.time() - _t0)
     log.info("[%s] Agent 1 (Extraction): done → %s", claim_id, extraction_raw[:200])
 
     # ── Agent 2: Policy Reviewer (with Tool Use) ─────────────────────────
@@ -85,7 +79,6 @@ async def process_claim(claim: dict) -> dict:
         session_service=session_service,
     )
     reviewer_session_id = f"{claim_id}-reviewer"
-
     reviewer_prompt = (
         f"Verify this insurance claim against policy rules and claim history.\n\n"
         f"Claim ID: {claim['claim_id']}\n"
@@ -95,9 +88,11 @@ async def process_claim(claim: dict) -> dict:
     )
 
     log.info("[%s] Agent 2 (Reviewer): processing with Tool Use...", claim_id)
+    _t0 = time.time()
     review_raw = await _run_agent(
         reviewer_runner, user_id, reviewer_session_id, reviewer_prompt
     )
+    agent_duration_seconds.labels(agent_name="reviewer").observe(time.time() - _t0)
     log.info("[%s] Agent 2 (Reviewer): done → %s", claim_id, review_raw[:200])
 
     # ── Agent 3: Final Decider ───────────────────────────────────────────
@@ -107,7 +102,6 @@ async def process_claim(claim: dict) -> dict:
         session_service=session_service,
     )
     decider_session_id = f"{claim_id}-decider"
-
     decider_prompt = (
         f"Make a final decision on this insurance claim.\n\n"
         f"Claim ID: {claim['claim_id']}\n"
@@ -118,12 +112,15 @@ async def process_claim(claim: dict) -> dict:
     )
 
     log.info("[%s] Agent 3 (Decider): processing...", claim_id)
+    _t0 = time.time()
     decision_raw = await _run_agent(
         decider_runner, user_id, decider_session_id, decider_prompt
     )
+    agent_duration_seconds.labels(agent_name="decider").observe(time.time() - _t0)
     log.info("[%s] Agent 3 (Decider): done → %s", claim_id, decision_raw[:200])
 
     elapsed = time.time() - start_time
+    pipeline_duration_seconds.observe(elapsed)
 
     # ── Parse decision ───────────────────────────────────────────────────
     try:
@@ -138,15 +135,8 @@ async def process_claim(claim: dict) -> dict:
             "flags": ["parse_error"],
         }
 
-    # Ensure claim_id is always present
     decision["claim_id"] = claim_id
     decision["processing_time_sec"] = round(elapsed, 2)
 
-    log.info(
-        "[%s] Pipeline complete in %.1fs → %s",
-        claim_id,
-        elapsed,
-        decision.get("verdict", "UNKNOWN"),
-    )
-
+    log.info("[%s] Pipeline complete in %.1fs → %s", claim_id, elapsed, decision.get("verdict", "UNKNOWN"))
     return decision

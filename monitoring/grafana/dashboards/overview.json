@@ -1,0 +1,183 @@
+{
+  "uid": "overview",
+  "title": "Overview — POC Kafka AI",
+  "tags": ["overview"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "15s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total Tokens (All Agents)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(ai_agent_tokens_total)",
+          "legendFormat": "Total Tokens"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "purple", "value": null }] } } }
+    },
+    {
+      "id": 2,
+      "title": "Claims Processed",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(ai_agent_claims_processed_total)",
+          "legendFormat": "Claims"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "blue", "value": null }] } } }
+    },
+    {
+      "id": 4,
+      "title": "Claims In-Flight",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "ai_agent_claims_in_flight",
+          "legendFormat": "In-Flight"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 3 }] } } }
+    },
+    {
+      "id": 5,
+      "title": "Approved",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(ai_agent_claims_processed_total{verdict=\"APPROVED\"}) or vector(0)",
+          "legendFormat": "APPROVED"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "green", "value": null }] } } }
+    },
+    {
+      "id": 6,
+      "title": "Denied",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(ai_agent_claims_processed_total{verdict=\"DENIED\"}) or vector(0)",
+          "legendFormat": "DENIED"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "red", "value": null }] } } }
+    },
+    {
+      "id": 7,
+      "title": "Token Usage Rate (All Agents)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(agent_name) (rate(ai_agent_tokens_total[2m]))",
+          "legendFormat": "{{agent_name}}"
+        }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 8 } } }
+    },
+    {
+      "id": 8,
+      "title": "Claim Verdict Distribution",
+      "type": "piechart",
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(verdict) (ai_agent_claims_processed_total)",
+          "legendFormat": "{{verdict}}"
+        }
+      ],
+      "options": { "pieType": "donut", "displayLabels": ["name", "percent"] }
+    },
+    {
+      "id": 10,
+      "title": "Pipeline Duration P50 / P95",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 7 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(ai_agent_pipeline_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P50 pipeline"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(ai_agent_pipeline_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P95 pipeline"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+    {
+      "id": 11,
+      "title": "Tokens by Type",
+      "type": "barchart",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 7 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(agent_name, token_type) (ai_agent_tokens_total)",
+          "legendFormat": "{{agent_name}} / {{token_type}}"
+        }
+      ],
+      "options": { "stacking": "normal" },
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 12,
+      "title": "Container Memory (Top 5)",
+      "type": "bargauge",
+      "gridPos": { "x": 0, "y": 19, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "topk(5, sum by(container_name) (\n  label_replace(\n    container_memory_usage_bytes{id=~\"/docker/.+\"},\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n))",
+          "legendFormat": "{{container_name}}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 268435456 }, { "color": "red", "value": 536870912 }] } } },
+      "options": { "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 13,
+      "title": "Container CPU (Top 5)",
+      "type": "bargauge",
+      "gridPos": { "x": 12, "y": 19, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "topk(5, sum by(container_name) (\n  label_replace(\n    rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[2m]),\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n) * 100)",
+          "legendFormat": "{{container_name}}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 80 }] } } },
+      "options": { "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    }
+  ]
+}

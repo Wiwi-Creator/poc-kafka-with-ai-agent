@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
+from metrics import tokens_total
+
 log = logging.getLogger(__name__)
 
 RESULTS_DIR = os.getenv("RESULTS_DIR", "/app/results")
@@ -50,6 +52,13 @@ class TokenTracker:
                     thoughts_tokens=usage.thoughts_token_count or 0,
                 )
                 tracker.records.append(record)
+
+                # Push to Prometheus
+                tokens_total.labels(agent_name=agent_name, token_type="prompt").inc(record.prompt_tokens)
+                tokens_total.labels(agent_name=agent_name, token_type="completion").inc(record.candidates_tokens)
+                if record.thoughts_tokens:
+                    tokens_total.labels(agent_name=agent_name, token_type="thoughts").inc(record.thoughts_tokens)
+
                 log.debug(
                     "[%s] %s: prompt=%d, output=%d, total=%d",
                     record.claim_id,
@@ -128,6 +137,13 @@ class TokenTracker:
             json.dump(summary, f, indent=2, ensure_ascii=False)
 
         log.info("Token usage report saved to %s", TOKEN_USAGE_FILE)
+
+    def get_last_record(self, agent_name: str, claim_id: str) -> "TokenRecord | None":
+        """Return the most recent TokenRecord for a given agent + claim (for span attributes)."""
+        return next(
+            (r for r in reversed(self.records) if r.agent_name == agent_name and r.claim_id == claim_id),
+            None,
+        )
 
     def print_summary(self):
         """Print a formatted summary table to log."""

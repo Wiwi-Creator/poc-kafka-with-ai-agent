@@ -1,0 +1,51 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: poc
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'ai-agent-service'
+    static_configs:
+      - targets: ['ai-agent-service:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+
+  # ── Docker SD: auto-discover container names from Docker daemon ──────────────
+  # Creates container_last_seen{container_name, container_id} metric
+  # Used in dashboard queries via group_left to map cAdvisor IDs → names
+  - job_name: 'docker-container-names'
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        filters:
+          - name: status
+            values: [running]
+    relabel_configs:
+      # Extract name from "/<name>" format
+      - source_labels: [__meta_docker_container_name]
+        regex: '/(.*)'
+        target_label: container_name
+      # Build the /docker/<id> format to match cAdvisor's id label
+      - source_labels: [__meta_docker_container_id]
+        target_label: container_id
+        replacement: '/docker/$1'
+        regex: '(.*)'
+      # Point all targets at cAdvisor (just need container_last_seen metric)
+      - target_label: __address__
+        replacement: 'cadvisor:8080'
+      - target_label: __metrics_path__
+        replacement: '/metrics'
+    metric_relabel_configs:
+      # Only keep container_last_seen — a lightweight info metric from cAdvisor
+      - source_labels: [__name__]
+        regex: 'container_last_seen'
+        action: keep

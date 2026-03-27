@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import NoBrokersAvailable
 
+from metrics import claims_in_flight, claims_processed_total, start_metrics_server
 from orchestrator import process_claim
 from token_tracker import tracker
 
@@ -82,6 +83,9 @@ def save_results(results: list[dict]) -> None:
 
 
 async def run():
+    start_metrics_server()
+    log.info("Prometheus metrics available on :%d/metrics", 8000)
+
     consumer = create_consumer()
     producer = create_producer()
 
@@ -119,19 +123,23 @@ async def run():
             claim.get("claim_amount", "N/A"),
         )
 
+        claims_in_flight.inc()
         try:
             decision = await process_claim(claim)
             decision["processed_at"] = datetime.now(timezone.utc).isoformat()
             results.append(decision)
 
+            verdict = decision.get("verdict", "UNKNOWN")
+            claims_processed_total.labels(verdict=verdict).inc()
             log.info(
                 "━━━ [%d] %s → %s ━━━",
                 claim_count,
                 claim_id,
-                decision.get("verdict", "UNKNOWN"),
+                verdict,
             )
         except Exception as e:
             log.error("[%s] Pipeline failed: %s", claim_id, e)
+            claims_processed_total.labels(verdict="MANUAL_REVIEW").inc()
             results.append({
                 "claim_id": claim_id,
                 "verdict": "MANUAL_REVIEW",
@@ -140,6 +148,8 @@ async def run():
                 "flags": ["pipeline_error"],
                 "processed_at": datetime.now(timezone.utc).isoformat(),
             })
+        finally:
+            claims_in_flight.dec()
 
         processed_ids.add(claim_id)
 

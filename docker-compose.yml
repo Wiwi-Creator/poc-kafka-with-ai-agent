@@ -8,7 +8,7 @@ services:
     ports:
       - "2181:2181"
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,31 +30,26 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
       interval: 15s
       timeout: 10s
       retries: 10
       start_period: 30s
 
-  # -- init container: create topics then exit --
   kafka-init:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka-init
     depends_on:
       kafka:
         condition: service_healthy
-    entrypoint: ["/bin/bash", "-c"]
+    entrypoint: [ "/bin/bash", "-c" ]
     command:
       - |
         echo "Creating Kafka topics..."
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic insurance-claims
-        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic claims-pending
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 --topic claim-results
-        echo "Topics created:"
-        kafka-topics --list --bootstrap-server kafka:29092
-        echo "Kafka init complete."
+        echo "Topics created."
 
-  # -- Kafka UI: web dashboard for topics, messages, consumer groups --
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -67,30 +62,73 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
-  consumer-service:
-    build: ./consumer_service
-    container_name: consumer-service
-    depends_on:
-      kafka-init:
-        condition: service_completed_successfully
-    environment:
-      KAFKA_BROKER: kafka:29092
-      INPUT_TOPIC: insurance-claims
-      PENDING_TOPIC: claims-pending
-    restart: on-failure
-
   ai-agent-service:
     build: ./ai_agent_service
     container_name: ai-agent-service
     depends_on:
       kafka-init:
         condition: service_completed_successfully
+    ports:
+      - "8000:8000"
     env_file: .env
     environment:
       KAFKA_BROKER: kafka:29092
-      INPUT_TOPIC: claims-pending
+      INPUT_TOPIC: insurance-claims
       OUTPUT_TOPIC: claim-results
       RESULTS_DIR: /app/results
     volumes:
       - ./results:/app/results
     restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
+    user: root
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - "8082:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    command:
+      - "-store_container_labels=false"
+      - "-whitelisted_container_labels=com.docker.compose.service"
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

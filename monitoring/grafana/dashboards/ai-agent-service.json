@@ -1,0 +1,122 @@
+{
+  "uid": "ai-agent-service",
+  "title": "AI Agent Service",
+  "tags": ["ai", "agents", "tokens"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "10s",
+  "time": { "from": "now-2h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "Total Tokens Used", "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ai_agent_tokens_total)", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "purple", "value": null }] } } }
+    },
+    {
+      "id": 2, "title": "Claims Processed", "type": "stat",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ai_agent_claims_processed_total)", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "blue", "value": null }] } } }
+    },
+    {
+      "id": 3, "title": "Claims In-Flight", "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ai_agent_claims_in_flight", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 1 }] } } }
+    },
+    {
+      "id": 4, "title": "Pipeline Duration P95", "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(ai_agent_pipeline_duration_seconds_bucket[5m])) by (le))", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 30 }, { "color": "red", "value": 60 }] } } }
+    },
+    {
+      "id": 5, "title": "Approval Rate", "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ai_agent_claims_processed_total{verdict=\"APPROVED\"}) / sum(ai_agent_claims_processed_total) * 100", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 40 }, { "color": "green", "value": 60 }] } } }
+    },
+    {
+      "id": 6, "title": "Approved", "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 2, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ai_agent_claims_processed_total{verdict=\"APPROVED\"}) or vector(0)", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "green", "value": null }] } } }
+    },
+    {
+      "id": 7, "title": "Denied", "type": "stat",
+      "gridPos": { "x": 22, "y": 0, "w": 2, "h": 4 },
+      "targets": [{ "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ai_agent_claims_processed_total{verdict=\"DENIED\"}) or vector(0)", "instant": true, "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{ "color": "red", "value": null }] } } }
+    },
+    {
+      "id": 8, "title": "Token Usage Rate by Agent (per min)", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 16, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(agent_name) (rate(ai_agent_tokens_total[2m])) * 60", "legendFormat": "{{agent_name}}", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 8 } } },
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum", "max"] } }
+    },
+    {
+      "id": 9, "title": "Verdict Distribution", "type": "piechart",
+      "gridPos": { "x": 16, "y": 4, "w": 8, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(verdict) (ai_agent_claims_processed_total)", "legendFormat": "{{verdict}}", "instant": true, "refId": "A" }
+      ],
+      "options": { "pieType": "donut", "displayLabels": ["name", "percent"] }
+    },
+    {
+      "id": 10, "title": "Total Tokens by Agent & Type", "type": "barchart",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(agent_name, token_type) (ai_agent_tokens_total)", "legendFormat": "{{agent_name}} / {{token_type}}", "instant": true, "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "stacking": "normal", "xTickLabelRotation": -20 }
+    },
+    {
+      "id": 11, "title": "Token Type Breakdown", "type": "piechart",
+      "gridPos": { "x": 12, "y": 12, "w": 6, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(token_type) (ai_agent_tokens_total)", "legendFormat": "{{token_type}}", "instant": true, "refId": "A" }
+      ],
+      "options": { "pieType": "pie", "displayLabels": ["name", "percent"] }
+    },
+    {
+      "id": 12, "title": "Prompt vs Completion Rate", "type": "timeseries",
+      "gridPos": { "x": 18, "y": 12, "w": 6, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by(token_type) (rate(ai_agent_tokens_total[5m])) * 60", "legendFormat": "{{token_type}}", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 13, "title": "Agent Processing Duration P50 / P95 / P99", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 20, "w": 16, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.50, sum by(agent_name, le) (rate(ai_agent_processing_duration_seconds_bucket[5m])))", "legendFormat": "P50 {{agent_name}}", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.95, sum by(agent_name, le) (rate(ai_agent_processing_duration_seconds_bucket[5m])))", "legendFormat": "P95 {{agent_name}}", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.99, sum by(agent_name, le) (rate(ai_agent_processing_duration_seconds_bucket[5m])))", "legendFormat": "P99 {{agent_name}}", "refId": "C" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+    {
+      "id": 14, "title": "Pipeline Duration P50 / P95 / P99", "type": "timeseries",
+      "gridPos": { "x": 16, "y": 20, "w": 8, "h": 8 },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.50, sum(rate(ai_agent_pipeline_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P50", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(ai_agent_pipeline_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P95", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.99, sum(rate(ai_agent_pipeline_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    }
+  ]
+}

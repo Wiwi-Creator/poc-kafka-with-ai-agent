@@ -1,0 +1,150 @@
+{
+  "uid": "system",
+  "title": "System — Container Resources",
+  "tags": ["system", "devops"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "15s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU Usage per Container (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(container_name) (\n  label_replace(\n    rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[2m]),\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n) * 100",
+          "legendFormat": "{{container_name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "custom": { "lineWidth": 2, "fillOpacity": 8 }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage per Container",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(container_name) (\n  label_replace(\n    container_memory_usage_bytes{id=~\"/docker/.+\"},\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n)",
+          "legendFormat": "{{container_name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "lineWidth": 2, "fillOpacity": 8 }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Memory Now (per Container)",
+      "type": "bargauge",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "topk(10, sum by(container_name) (\n  label_replace(\n    container_memory_usage_bytes{id=~\"/docker/.+\"},\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n))",
+          "legendFormat": "{{container_name}}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 268435456 },
+              { "color": "red", "value": 536870912 }
+            ]
+          }
+        }
+      },
+      "options": { "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 4,
+      "title": "CPU Now (per Container)",
+      "type": "bargauge",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "topk(10, sum by(container_name) (\n  label_replace(\n    rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[2m]),\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n) * 100)",
+          "legendFormat": "{{container_name}}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        }
+      },
+      "options": { "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 5,
+      "title": "Network Received per Container",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 7 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(container_name) (\n  label_replace(\n    rate(container_network_receive_bytes_total{id=~\"/docker/.+\"}[2m]),\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n)",
+          "legendFormat": "{{container_name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 6,
+      "title": "Network Transmitted per Container",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 7 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by(container_name) (\n  label_replace(\n    rate(container_network_transmit_bytes_total{id=~\"/docker/.+\"}[2m]),\n    \"container_id\", \"$0\", \"id\", \".*\"\n  ) * on(container_id) group_left(container_name)\n  (max by(container_id, container_name) (container_last_seen{container_name!=\"\"}) * 0 + 1)\n)",
+          "legendFormat": "{{container_name}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } },
+      "options": { "tooltip": { "mode": "multi" } }
+    }
+  ]
+}
