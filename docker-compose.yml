@@ -69,7 +69,7 @@ services:
       kafka-init:
         condition: service_completed_successfully
     ports:
-      - "8000:8000"
+      - "8888:8888"
     env_file: .env
     environment:
       KAFKA_BROKER: kafka:29092

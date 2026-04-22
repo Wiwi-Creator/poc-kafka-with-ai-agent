@@ -4,21 +4,20 @@ A proof-of-concept multi-agent system that processes insurance claims through a 
 
 ## Architecture
 
-![Architecture Diagram](.images/image.png)
+![alt text](.images/image.jpg)
 
 ### Kafka Elements
 
 | Element | Value | Role |
 |---------|-------|------|
-| **Topic** | `insurance-claims` | Raw claims published by the producer |
-| **Topic** | `claims-pending` | Forwarded by consumer-service; decouples fast poll from slow LLM |
+| **Topic** | `insurance-claims` | Raw claims published by the producer ||
 | **Topic** | `claim-results` | Final decisions published by ai-agent-service |
 | **Consumer Group** | `consumer-service-group` | Subscribes to `insurance-claims`; commits offset after forwarding |
-| **Consumer Group** | `ai-agent-service-group` | Subscribes to `claims-pending`; `max_poll_interval_ms=600s` to allow LLM processing |
 | **Offset reset** | `earliest` | Both consumers replay from the beginning on restart |
 | **Partition** | 1 per topic (POC) | Can be scaled to N for parallel processing in production |
 
-
+## Tech Stack
+![alt text](.images/image2.jpg)
 ## Agent Pipeline
 
 ```
@@ -50,11 +49,11 @@ poc-kafka-with-ai-agent/
 │       └── sample_claims.json  # 50 simulated insurance claims
 │
 ├── consumer_service/
-│   ├── main.py                 # Poll insurance-claims, forward to claims-pending
+│   ├── main.py                 # Poll insurance-claims
 │   └── Dockerfile
 │
 ├── ai_agent_service/
-│   ├── main.py                 # Poll claims-pending, run LLM pipeline
+│   ├── main.py                 # Poll insurance-claims, run LLM pipeline
 │   ├── orchestrator.py         # Sequential 3-agent pipeline
 │   ├── token_tracker.py        # Token usage tracking via after_model_callback
 │   ├── test_local.py           # Local test without Kafka
@@ -135,7 +134,6 @@ cat results/predictions.json
 | Page | What you can see |
 |------|-----------------|
 | `insurance-claims` topic | Raw claims from producer |
-| `claims-pending` topic | Forwarded by consumer-service |
 | `claim-results` topic | Agent decisions |
 | Consumer groups | `consumer-service-group`, `ai-agent-service-group` |
 

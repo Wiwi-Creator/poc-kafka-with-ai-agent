@@ -20,7 +20,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
-INPUT_TOPIC = os.getenv("INPUT_TOPIC", "claims-pending")
+INPUT_TOPIC = os.getenv("INPUT_TOPIC", "insurance-claims")
 OUTPUT_TOPIC = os.getenv("OUTPUT_TOPIC", "claim-results")
 RESULTS_DIR = os.getenv("RESULTS_DIR", "/app/results")
 RESULTS_FILE = os.path.join(RESULTS_DIR, "predictions.json")
@@ -84,7 +84,7 @@ def save_results(results: list[dict]) -> None:
 
 async def run():
     start_metrics_server()
-    log.info("Prometheus metrics available on :%d/metrics", 8000)
+    log.info("Prometheus metrics available on :%d/metrics", 8888)
 
     consumer = create_consumer()
     producer = create_producer()

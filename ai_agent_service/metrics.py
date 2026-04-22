@@ -1,10 +1,6 @@
-"""Prometheus metrics definitions for ai-agent-service.
-
-Exposed on :8000/metrics via start_metrics_server().
-"""
 from prometheus_client import Counter, Gauge, Histogram, start_http_server
 
-METRICS_PORT = 8000
+METRICS_PORT = 8888
 
 tokens_total = Counter(
     "ai_agent_tokens_total",
